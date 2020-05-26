@@ -85,27 +85,25 @@ class GigasetelementsClientAPI(object):
         self._state = self.get_alarm_status()
         self._health = self.get_alarm_health()
 
-    def _do_post_request(self, url, payload):
-        _LOGGER.debug("Gigaset Elements performing request: %s", payload)
-        result = self._session.post(url, payload)
-        return result
-
-    def _do_request(self, request_type, url):
+    def _do_request(self, request_type, url, payload):
         _LOGGER.debug("Gigaset Elements performing request: %s", url)
-        result = self._session.get(url)
+        if request_type == "POST":
+            result = self._session.post(url, payload)
+        else:
+            result = self._session.get(url)
         return result
 
     def _do_authorisation(self):
         _LOGGER.debug("Gigaset Elements Authenticating: %s", self._username)
         url = self._auth_url
         payload = {"password": self._password, "email": self._username}
-        result = self._do_post_request(url, payload)
+        result = self._do_request("POST", url, payload)
         url = self._base_url + "/v1/auth/openid/begin?op=gigaset"
-        result = self._do_request("GET", url)
+        result = self._do_request("GET", url, "")
 
     def _set_property_id(self):
         url = self._base_url + "/v1/me/basestations"
-        result = self._do_request("GET", url)
+        result = self._do_request("GET", url, "")
         self._property_id = result.json()[0]["id"]
 
     def get_alarm_status(self):
@@ -115,7 +113,7 @@ class GigasetelementsClientAPI(object):
             self._set_property_id()
 
         url = self._base_url + "/v1/me/basestations"
-        result = self._do_request("GET", url)
+        result = self._do_request("GET", url, "")
         if result.json()[0]["intrusion_settings"]["active_mode"] == "away":
             self._state = STATE_ALARM_ARMED_AWAY
         elif result.json()[0]["intrusion_settings"]["active_mode"] == "night":
@@ -136,7 +134,7 @@ class GigasetelementsClientAPI(object):
     def get_alarm_health(self):
 
         url = self._base_url + "/v2/me/health"
-        result = self._do_request("GET", url)
+        result = self._do_request("GET", url, "")
         if result.json()["system_health"] == "green":
             self._health = STATE_HEALTH_GREEN
         elif result.json()["system_health"] == "orange":
@@ -168,7 +166,7 @@ class GigasetelementsClientAPI(object):
         url = self._base_url + "/v1/me/basestations/" + self._property_id
         switch = {"intrusion_settings": {"active_mode": status_name}}
         payload = json.dumps(switch)
-        self._do_post_request(url, payload)
+        self._do_request(url, payload)
         return
 
     def update(self):
@@ -186,7 +184,7 @@ class GigasetelementsClientAPI(object):
                 self._set_as_armed_night()
             else:
                 self._set_as_disarmed()
-			"""
+                        """
 
     @property
     def target_state(self):
@@ -195,9 +193,9 @@ class GigasetelementsClientAPI(object):
     """
     @state.setter
     def state(self, s):
-    	_LOGGER.debug("Changing Gigaset Elements alarm panel state to %s", s)
-    	if self._prev_state != s:
-        	_LOGGER.debug("Saving Gigaset Elements prev state as %s", self._state)
-        	self._prev_state = self._state
+        _LOGGER.debug("Changing Gigaset Elements alarm panel state to %s", s)
+        if self._prev_state != s:
+            _LOGGER.debug("Saving Gigaset Elements prev state as %s", self._state)
+            self._prev_state = self._state
         self._state = s
     """

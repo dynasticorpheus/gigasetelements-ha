@@ -72,7 +72,7 @@ class GigasetelementsHealthSensor(Entity):
     def __init__(self, name, client):
         self._name = name + "_health"
         self._health = STATE_HEALTH_GREEN
-        self._icon = "mdi:cloud-check"
+        self._icon = "mdi:shield-check-outline"
         self._client = client
         self.update()
 
@@ -90,11 +90,11 @@ class GigasetelementsHealthSensor(Entity):
 
     def _set_icon(self):
         if self._health == STATE_HEALTH_GREEN:
-            self._icon = "mdi:cloud-check"
+            self._icon = "mdi:shield-check-outline"
         elif self._health == STATE_HEALTH_ORANGE:
-            self._icon = "mdi:cloud-alert"
+            self._icon = "mdi:shield-alert-outline"
         else:
-            self._icon = "mdi:cloud-question"
+            self._icon = "mdi:shield-alert"
 
     def update(self):
         self._health = self._client.get_alarm_health()
