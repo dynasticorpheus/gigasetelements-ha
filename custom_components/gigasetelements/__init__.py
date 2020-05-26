@@ -166,7 +166,7 @@ class GigasetelementsClientAPI(object):
         url = self._base_url + "/v1/me/basestations/" + self._property_id
         switch = {"intrusion_settings": {"active_mode": status_name}}
         payload = json.dumps(switch)
-        self._do_request(url, payload)
+        self._do_request("POST", url, payload)
         return
 
     def update(self):
