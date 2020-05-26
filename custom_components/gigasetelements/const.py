@@ -1,0 +1,3 @@
+STATE_HEALTH_GREEN = "green"
+STATE_HEALTH_ORANGE = "orange"
+STATE_HEALTH_RED = "red"

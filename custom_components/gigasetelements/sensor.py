@@ -11,6 +11,12 @@ from homeassistant.const import (
     STATE_ALARM_PENDING,
 )
 
+from .const import (
+    STATE_HEALTH_GREEN,
+    STATE_HEALTH_ORANGE,
+    STATE_HEALTH_RED,
+)
+
 DOMAIN = "gigasetelements"
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,12 +26,13 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
-    add_devices([GigasetelementsSensor(name, client)])
+    add_devices([GigasetelementsModeSensor(name, client)])
+    add_devices([GigasetelementsHealthSensor(name, client)])
 
 
-class GigasetelementsSensor(Entity):
+class GigasetelementsModeSensor(Entity):
     def __init__(self, name, client):
-        self._name = name
+        self._name = name + "_modus"
         self._state = STATE_ALARM_DISARMED
         self._icon = "mdi:lock-open-outline"
         self._client = client
@@ -57,5 +64,39 @@ class GigasetelementsSensor(Entity):
 
     def update(self):
         self._state = self._client.get_alarm_status()
+
+        self._set_icon()
+
+
+class GigasetelementsHealthSensor(Entity):
+    def __init__(self, name, client):
+        self._name = name + "_health"
+        self._health = STATE_HEALTH_GREEN
+        self._icon = "mdi:cloud-check"
+        self._client = client
+        self.update()
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def state(self):
+        return self._health
+
+    @property
+    def icon(self):
+        return self._icon
+
+    def _set_icon(self):
+        if self._health == STATE_HEALTH_GREEN:
+            self._icon = "mdi:cloud-check"
+        elif self._health == STATE_HEALTH_ORANGE:
+            self._icon = "mdi:cloud-alert"
+        else:
+            self._icon = "mdi:cloud-question"
+
+    def update(self):
+        self._health = self._client.get_alarm_health()
 
         self._set_icon()
