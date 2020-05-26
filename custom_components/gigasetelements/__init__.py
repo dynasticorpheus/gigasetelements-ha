@@ -22,6 +22,7 @@ import time
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
+    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
 )
@@ -66,7 +67,8 @@ class GigasetelementsClientAPI(object):
         self._auth_url = "https://im.gigaset-elements.de/identity/api/v1/user/login"
         self._base_url = "https://api.gigaset-elements.de/api/v1"
         self._headers = {
-            "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36"
+            "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
+            "cache-control": "no-cache",
         }
         self._username = username
         self._password = password
@@ -77,12 +79,12 @@ class GigasetelementsClientAPI(object):
         self._state = self.get_alarm_status()
 
     def _do_post_request(self, url, payload):
-        _LOGGER.debug("Gigaset Elements performing POST request: %s", payload)
+        _LOGGER.debug("Gigaset Elements performing request: %s", payload)
         result = self._session.post(url, payload)
         return result
 
     def _do_request(self, request_type, url):
-        _LOGGER.debug("Gigaset Elements performing GET request: %s", url)
+        _LOGGER.debug("Gigaset Elements performing request: %s", url)
         result = self._session.get(url)
         return result
 
@@ -107,13 +109,11 @@ class GigasetelementsClientAPI(object):
 
         url = self._base_url + "/me/basestations"
         result = self._do_request("GET", url)
-
         if result.json()[0]["intrusion_settings"]["active_mode"] == "away":
             self._state = STATE_ALARM_ARMED_AWAY
-        elif result.json()[0]["intrusion_settings"]["active_mode"] in [
-            "night",
-            "custom",
-        ]:
+        elif result.json()[0]["intrusion_settings"]["active_mode"] == "night":
+            self._state = STATE_ALARM_ARMED_NIGHT
+        elif result.json()[0]["intrusion_settings"]["active_mode"] == "custom":
             self._state = STATE_ALARM_ARMED_HOME
         else:
             self._state = STATE_ALARM_DISARMED
@@ -138,6 +138,8 @@ class GigasetelementsClientAPI(object):
         if action == STATE_ALARM_ARMED_AWAY:
             status_name = "away"
         elif action == STATE_ALARM_ARMED_HOME:
+            status_name = "custom"
+        elif action == STATE_ALARM_ARMED_NIGHT:
             status_name = "night"
         else:
             status_name = "home"
@@ -158,6 +160,8 @@ class GigasetelementsClientAPI(object):
                 self._set_as_armed_away()
             elif self.state == STATE_ALARM_ARMED_HOME:
                 self._set_as_armed_home()
+            elif self.state == STATE_ALARM_ARMED_NIGHT:
+                self._set_as_armed_night()
             else:
                 self._set_as_disarmed()
 			"""

@@ -6,6 +6,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
+    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
 )
@@ -46,6 +47,8 @@ class GigasetelementsSensor(Entity):
         if self._state == STATE_ALARM_ARMED_AWAY:
             self._icon = "mdi:shield-key"
         elif self._state == STATE_ALARM_ARMED_HOME:
+            self._icon = "mdi:shield-account"
+        elif self._state == STATE_ALARM_ARMED_NIGHT:
             self._icon = "mdi:shield-account"
         elif self._state == STATE_ALARM_PENDING:
             self._icon = "mdi:shield-half-full"

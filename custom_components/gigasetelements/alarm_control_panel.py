@@ -14,10 +14,12 @@ import time
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
+    SUPPORT_ALARM_ARM_NIGHT,
 )
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
+    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
 )
@@ -46,7 +48,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
+        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
 
     def update(self):
         _LOGGER.debug("Updated Gigaset Elements SWITCH %s", self._name)
@@ -74,6 +76,11 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
     def alarm_arm_away(self, code=None):
         self._last_updated = time.time()
         self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
+        self._state = STATE_ALARM_PENDING
+
+    def alarm_arm_night(self, code=None):
+        self._last_updated = time.time()
+        self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)
         self._state = STATE_ALARM_PENDING
 
     @property
