@@ -1,0 +1,8 @@
+{
+  "domain": "gigasetelements",
+  "name": "Gigaset Elements",
+  "documentation": "https://github.com/dynasticorpheus/gigasetelements-ha/blob/develop/README.rst",
+  "dependencies": [],
+  "codeowners": ["@dynasticorpheus"],
+  "requirements": []
+}

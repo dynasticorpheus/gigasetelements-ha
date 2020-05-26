@@ -1,0 +1,11 @@
+#######################################################
+##  Platform Gigaset Elements, adds sensor and arming switches
+#######################################################
+
+gigasetelements:
+    # Name for components
+    name: "gigasetelements alarm"
+    # Username - your username to Gigaset Elements
+    username: !secret gigasetelements_username
+    # Password - your password to Gigaset Elements
+    password: !secret gigasetelements_password
