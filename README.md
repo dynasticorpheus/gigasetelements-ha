@@ -1,36 +1,49 @@
-# gigasetelements-ha
-A custom component for Home Assistant for Gigaset Elements Home Alarm.
+# Gigaset Elements - Custom Component for Home-Assisant
 
-Heavily based on the work of @nwiborg and @vlumikero.
+This project is a custom component for [Home-Assistant](https://home-assistant.io) providing [Gigaset Smart Home](https://www.gigaset.com/hq_en/smart-home/) integration.
 
-The platform contains:
-* Switch for arming Gigaset Elements Home Alarm in Away Mode
-* Switch for arming Home mode
-* Sensor to detect the status of the Home Alarm
-* Alarm control panel that can be used with the corresponding Lovelace card
 
-### Legal Disclaimer
-This software is not affiliated with Gigaset and the developers take no legal responsibility for the functionality or security of your Gigaset Elements Alarm and devices.
+## Installation
 
-# Installation
+### Via HACS
 
-* Install repository through HACS
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
-- OR -
+### Manually
+1. Copy the files from the `custom_component/gigasetelements/` folder into the `custom_component/gigasetelements/` of your Home-Assistant installation.
 
-* Create a "custom_components" folder where the configuration.yaml file is located, and sub folders equivalent to the structure in this repository.
+### Common Steps
+1. Configure the sensors following the instructions in `Configuration`.
+2. Restart the Home-Assitant instance.
 
-* Update your configuration.yaml file according to the example file provided.
-* Restart home assistant
 
-# Example configuration.yaml
+## Configuration
 
+### Schema
 ```yaml
-gigasetelements:
-    # Name for components
-    name: "Gigaset Elements Alarm"
-    # Username - your username to gigaset elements
-    username: !secret gigasetelements_user
-    # Password - your password to gigaset elements
-    password: !secret gigasetelements_pw
-``
+- platform: gigasetelements
+  name:
+  username:
+  password:
+  scan_interval:
+```
+
+### Parameters
+* `name`: Name of the sensor (e.g. gigaset_elements).
+* `username`: Gigaset Elements username. [https://app.gigaset-elements.com](https://app.gigaset-elements.com/)   
+* `password`: Gigaset Elements password.
+* `scan_interval`: (Optional) Set how many seconds should pass in between refreshes. Don't set this to low to avoid issues.
+
+### Example
+```yaml
+- platform: gigasetelements
+  name: gigaset_elements
+  username: !secret gigasetelements_username
+  password: !secret gigasetelements_password
+  scan_interval: 60
+```
+
+
+## Donation Hall of Fame
+------
+If you like this custom component you might want to consider to [BuyMeABeer? 🍺](https://buymeacoffee.com/dynasticorpheus)
