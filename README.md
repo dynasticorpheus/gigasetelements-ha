@@ -42,8 +42,8 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
   password: !secret gigasetelements_password
   scan_interval: 60
 ```
-
+## Credits
+Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.
 
 ## Donation Hall of Fame
-------
 If you like this custom component you might want to consider to [BuyMeABeer? 🍺](https://buymeacoffee.com/dynasticorpheus)
