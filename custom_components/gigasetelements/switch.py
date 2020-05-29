@@ -16,7 +16,10 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
+    STATE_ALARM_TRIGGERED,
 )
+
+from .const import SWITCH_TYPE
 
 DOMAIN = "gigasetelements"
 _LOGGER = logging.getLogger(__name__)
@@ -26,21 +29,15 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
-
-    switchGigasetelements = GigasetelementsSwitch(hass, name, client)
-    add_devices([switchGigasetelements])
-    add_devices(
-        [
-            GigasetelementsSwitch(
-                hass, name + " Home Mode", client, STATE_ALARM_ARMED_HOME
-            )
-        ]
-    )
+    for mode in SWITCH_TYPE:
+        add_devices(
+            [GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])]
+        )
 
 
 class GigasetelementsSwitch(SwitchEntity):
     def __init__(self, hass, name, client, mode=STATE_ALARM_ARMED_AWAY):
-        _LOGGER.info("Initialized Gigaset Elements SWITCH %s", name)
+        _LOGGER.debug("Initialized Gigaset Elements switch: %s", name)
         self._hass = hass
         self._hass.custom_attributes = {}
         self._name = name
@@ -67,18 +64,18 @@ class GigasetelementsSwitch(SwitchEntity):
 
     def turn_on(self, **kwargs):
         """Turn device on."""
-        _LOGGER.debug("Update Gigaset Elements SWITCH to on, mode %s ", self._mode)
+        _LOGGER.debug("Update Gigaset Elements switch to on, mode %s ", self._mode)
         self._last_updated = time.time()
         self._client.set_alarm_status(self._mode)
 
     def turn_off(self, **kwargs):
         """Turn device off."""
-        _LOGGER.debug("Update Gigaset Elements SWITCH to off")
+        _LOGGER.debug("Update Gigaset Elements switch to off")
         self._last_updated = time.time()
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
     def update(self):
-        _LOGGER.debug("Updated Gigaset Elements SWITCH %s", self._name)
+        _LOGGER.debug("Updated Gigaset Elements switch %s", self._name)
 
         diff = time.time() - self._last_updated
         if diff > 15:

@@ -9,6 +9,7 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
+    STATE_ALARM_TRIGGERED,
 )
 
 from .const import (
@@ -37,6 +38,7 @@ class GigasetelementsModeSensor(Entity):
         self._icon = "mdi:lock-open-outline"
         self._client = client
         self.update()
+        _LOGGER.debug("Initialized Gigaset Elements sensor: %s", self._name)
 
     @property
     def name(self):
@@ -75,6 +77,7 @@ class GigasetelementsHealthSensor(Entity):
         self._icon = "mdi:shield-check-outline"
         self._client = client
         self.update()
+        _LOGGER.debug("Initialized Gigaset Elements sensor: %s", self._name)
 
     @property
     def name(self):

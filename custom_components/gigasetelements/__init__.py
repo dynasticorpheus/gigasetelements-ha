@@ -25,9 +25,15 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
+    STATE_ALARM_TRIGGERED,
+    STATE_UNKNOWN,
 )
 
 from .const import (
+    AUTH_GSE_EXPIRE,
+    HEADER_GSE,
+    URL_GSE_AUTH,
+    URL_GSE_API,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
@@ -43,7 +49,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_NAME, default="Home Alarm"): cv.string,
+                vol.Optional(CONF_NAME, default="gigaset_elements"): cv.string,
             }
         ),
     },
@@ -70,17 +76,15 @@ def setup(hass, config):
 class GigasetelementsClientAPI(object):
     def __init__(self, username, password):
         self._session = requests.Session()
-        self._auth_url = "https://im.gigaset-elements.de/identity/api/v1/user/login"
-        self._base_url = "https://api.gigaset-elements.de/api"
-        self._headers = {
-            "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
-            "cache-control": "no-cache",
-        }
+        self._auth_url = URL_GSE_AUTH
+        self._base_url = URL_GSE_API
+        self._headers = HEADER_GSE
         self._username = username
         self._password = password
         self._property_id = 0
         self._basestation_id = 0
         self._last_updated = 0
+        self._last_authenticated = 0
         self._target_state = STATE_ALARM_DISARMED
         self._state = self.get_alarm_status()
         self._health = self.get_alarm_health()
@@ -97,19 +101,26 @@ class GigasetelementsClientAPI(object):
         _LOGGER.debug("Gigaset Elements Authenticating: %s", self._username)
         url = self._auth_url
         payload = {"password": self._password, "email": self._username}
-        result = self._do_request("POST", url, payload)
+        self._do_request("POST", url, payload)
         url = self._base_url + "/v1/auth/openid/begin?op=gigaset"
-        result = self._do_request("GET", url, "")
+        self._do_request("GET", url, "")
 
     def _set_property_id(self):
         url = self._base_url + "/v1/me/basestations"
         result = self._do_request("GET", url, "")
         self._property_id = result.json()[0]["id"]
+        _LOGGER.debug("Get Gigaset Elements property id: %s", self._property_id)
 
     def get_alarm_status(self):
 
-        if self._property_id == 0:
+        if (
+            self._last_authenticated == 0
+            or time.time() - self._last_authenticated > AUTH_GSE_EXPIRE
+        ):
             self._do_authorisation()
+            self._last_authenticated = time.time()
+
+        if self._property_id == 0:
             self._set_property_id()
 
         url = self._base_url + "/v1/me/basestations"
@@ -120,8 +131,10 @@ class GigasetelementsClientAPI(object):
             self._state = STATE_ALARM_ARMED_NIGHT
         elif result.json()[0]["intrusion_settings"]["active_mode"] == "custom":
             self._state = STATE_ALARM_ARMED_HOME
-        else:
+        elif result.json()[0]["intrusion_settings"]["active_mode"] == "home":
             self._state = STATE_ALARM_DISARMED
+        else:
+            self._state = STATE_UNKNOWN
 
         _LOGGER.debug("Get Gigaset Elements alarm state: %s", self._state)
         _LOGGER.debug("Target Gigaset Elements alarm state: %s", self._target_state)
@@ -139,8 +152,16 @@ class GigasetelementsClientAPI(object):
             self._health = STATE_HEALTH_GREEN
         elif result.json()["system_health"] == "orange":
             self._health = STATE_HEALTH_ORANGE
-        else:
+        elif result.json()["system_health"] == "red":
             self._health = STATE_HEALTH_RED
+            if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
+                self._state = STATE_ALARM_TRIGGERED
+                _LOGGER.debug(
+                    "Get Gigaset Elements trigger state: %s",
+                    result.json()["status_msg_id"],
+                )
+        else:
+            self._health = STATE_UNKNOWN
 
         _LOGGER.debug("Get Gigaset Elements health state: %s", self._health)
 
@@ -151,7 +172,6 @@ class GigasetelementsClientAPI(object):
         _LOGGER.debug("Setting Gigaset Elements alarm panel to %s", action)
 
         self._last_updated = time.time()
-
         self._target_state = action
         self._state = STATE_ALARM_PENDING
 
@@ -175,27 +195,7 @@ class GigasetelementsClientAPI(object):
 
         if diff > 15:
             self.get_alarm_status()
-            """
-            if self.state == STATE_ALARM_ARMED_AWAY:
-                self._set_as_armed_away()
-            elif self.state == STATE_ALARM_ARMED_HOME:
-                self._set_as_armed_home()
-            elif self.state == STATE_ALARM_ARMED_NIGHT:
-                self._set_as_armed_night()
-            else:
-                self._set_as_disarmed()
-                        """
 
     @property
     def target_state(self):
         return self._target_state
-
-    """
-    @state.setter
-    def state(self, s):
-        _LOGGER.debug("Changing Gigaset Elements alarm panel state to %s", s)
-        if self._prev_state != s:
-            _LOGGER.debug("Saving Gigaset Elements prev state as %s", self._state)
-            self._prev_state = self._state
-        self._state = s
-    """
