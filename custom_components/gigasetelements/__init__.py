@@ -85,7 +85,7 @@ class GigasetelementsClientAPI(object):
         self._basestation_id = 0
         self._last_updated = 0
         self._last_authenticated = 0
-        self._target_state = STATE_ALARM_DISARMED
+        self._target_state = 0
         self._state = self.get_alarm_status()
         self._health = self.get_alarm_health()
 
@@ -136,13 +136,20 @@ class GigasetelementsClientAPI(object):
         else:
             self._state = STATE_UNKNOWN
 
-        _LOGGER.debug("Get Gigaset Elements alarm state: %s", self._state)
-        _LOGGER.debug("Target Gigaset Elements alarm state: %s", self._target_state)
+        if self._target_state == 0:
+            self._target_state = self._state
+            _LOGGER.debug(
+                "Initialized Gigaset Elements target alarm state: %s",
+                self._target_state,
+            )
 
         if self._state == self._target_state:
             return self._state
         else:
             return STATE_ALARM_PENDING
+
+        _LOGGER.debug("Get Gigaset Elements alarm state: %s", self._state)
+        _LOGGER.debug("Target Gigaset Elements alarm state: %s", self._target_state)
 
     def get_alarm_health(self):
 
