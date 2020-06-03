@@ -2,11 +2,8 @@
 Gigaset Elements platform that offers a control over alarm status.
 """
 import logging
-import voluptuous as vol
 
-from homeassistant.util import convert
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import STATE_OFF, STATE_ON, CONF_NAME, CONF_SWITCHES
 
 import time
 
@@ -52,13 +49,17 @@ class GigasetelementsSwitch(SwitchEntity):
         if self._state == STATE_ALARM_ARMED_AWAY:
             self._icon = "mdi:shield-key"
         elif self._state == STATE_ALARM_ARMED_HOME:
-            self._icon = "mdi:shield-account"
-        elif self._state == STATE_ALARM_ARMED_NIGHT:
-            self._icon = "mdi:shield-account"
-        elif self._state == STATE_ALARM_PENDING:
             self._icon = "mdi:shield-half-full"
+        elif self._state == STATE_ALARM_ARMED_NIGHT:
+            self._icon = "mdi:shield-half-full"
+        elif self._state == STATE_ALARM_PENDING:
+            self._icon = "mdi:shield-edit"
+        elif self._state == STATE_ALARM_DISARMED:
+            self._icon = "mdi:shield-off"
+        elif self._state == STATE_ALARM_TRIGGERED:
+            self._icon = "mdi:shield-alert"
         else:
-            self._icon = "mdi:shield-off-outline"
+            self._icon = "mdi:shield-remove"
 
         _LOGGER.debug("Update Gigaset Elements icon to %s", self._icon)
 
