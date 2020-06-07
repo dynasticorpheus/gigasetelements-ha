@@ -8,7 +8,7 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
 
 ### Via HACS
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 ### Manually
 1. Copy the files from the `custom_component/gigasetelements/` folder into the `custom_component/gigasetelements/` of your Home-Assistant installation.
@@ -43,6 +43,12 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
   password: !secret gigasetelements_password
   scan_interval: 60
 ```
+
+## Current integrations
+* Alarm Control Panel
+* Sensor (state, health)
+* Switch (away, night, custom)
+
 ## Credits
 Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.
 
