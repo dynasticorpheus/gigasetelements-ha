@@ -32,7 +32,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 class GigasetelementsModeSensor(Entity):
     def __init__(self, name, client):
-        self._name = name + "_modus"
+        self._name = name + "_state"
         self._state = STATE_ALARM_DISARMED
         self._icon = "mdi:lock-open-outline"
         self._client = client
