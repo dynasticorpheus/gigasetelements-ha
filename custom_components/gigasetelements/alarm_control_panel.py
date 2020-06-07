@@ -2,13 +2,9 @@
 Gigaset Elements platform that offers a control over alarm status.
 """
 import logging
-import voluptuous as vol
 
-from homeassistant.util import convert
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
-from homeassistant.const import STATE_OFF, STATE_ON, CONF_NAME, CONF_SWITCHES
 
-# import requests
 import time
 
 from homeassistant.components.alarm_control_panel.const import (
@@ -22,7 +18,6 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
-    STATE_ALARM_TRIGGERED,
 )
 
 DOMAIN = "gigasetelements"
