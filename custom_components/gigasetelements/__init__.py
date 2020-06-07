@@ -88,8 +88,8 @@ class GigasetelementsClientAPI(object):
         self._last_authenticated = 0
         self._pending_time = 0
         self._target_state = 0
-        self._state = self.get_alarm_status()
-        self._health = self.get_alarm_health()
+        self._state = STATE_ALARM_DISARMED
+        self._health = STATE_HEALTH_GREEN
 
     def _do_request(self, request_type, url, payload):
         _LOGGER.debug("Performing request: %s", url)
@@ -121,6 +121,9 @@ class GigasetelementsClientAPI(object):
 
         if self._property_id == 0:
             self._set_property_id()
+
+        if self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
+            return self._state
 
         result = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
         if result.json()[0]["intrusion_settings"]["active_mode"] == "away":
@@ -165,9 +168,7 @@ class GigasetelementsClientAPI(object):
             self._health = STATE_HEALTH_RED
             if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
                 self._state = STATE_ALARM_TRIGGERED
-                _LOGGER.debug(
-                    "Get trigger state: %s", result.json()["status_msg_id"],
-                )
+                _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
         else:
             self._health = STATE_UNKNOWN
 
