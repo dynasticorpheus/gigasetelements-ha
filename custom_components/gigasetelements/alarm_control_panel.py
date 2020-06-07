@@ -39,7 +39,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
     def __init__(self, name, client, mode=STATE_ALARM_ARMED_AWAY):
-        _LOGGER.debug("Initialized Gigaset Elements alarm_control_panel: %s", name)
+        _LOGGER.debug("Initialized alarm_control_panel: %s", name)
         self._name = name
         self._state = STATE_ALARM_DISARMED
         self._last_updated = 0
@@ -52,7 +52,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
 
     def update(self):
-        _LOGGER.debug("Updated Gigaset Elements alarm_control_panel: %s", self._name)
+        _LOGGER.debug("Updated alarm_control_panel: %s", self._name)
 
         diff = time.time() - self._last_updated
         if diff > 15:

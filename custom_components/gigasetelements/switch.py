@@ -34,7 +34,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 class GigasetelementsSwitch(SwitchEntity):
     def __init__(self, hass, name, client, mode=STATE_ALARM_ARMED_AWAY):
-        _LOGGER.debug("Initialized Gigaset Elements switch: %s", name)
+        _LOGGER.debug("Initialized switch: %s", name)
         self._hass = hass
         self._hass.custom_attributes = {}
         self._name = name
@@ -61,22 +61,22 @@ class GigasetelementsSwitch(SwitchEntity):
         else:
             self._icon = "mdi:shield-remove"
 
-        _LOGGER.debug("Update Gigaset Elements icon to %s", self._icon)
+        _LOGGER.debug("Update icon to %s", self._icon)
 
     def turn_on(self, **kwargs):
         """Turn device on."""
-        _LOGGER.debug("Update Gigaset Elements switch to on, mode %s ", self._mode)
+        _LOGGER.debug("Update switch to on, mode %s ", self._mode)
         self._last_updated = time.time()
         self._client.set_alarm_status(self._mode)
 
     def turn_off(self, **kwargs):
         """Turn device off."""
-        _LOGGER.debug("Update Gigaset Elements switch to off")
+        _LOGGER.debug("Update switch to off")
         self._last_updated = time.time()
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
     def update(self):
-        _LOGGER.debug("Updated Gigaset Elements switch %s", self._name)
+        _LOGGER.debug("Updated switch %s", self._name)
 
         diff = time.time() - self._last_updated
         if diff > 15:

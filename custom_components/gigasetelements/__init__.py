@@ -90,7 +90,7 @@ class GigasetelementsClientAPI(object):
         self._health = self.get_alarm_health()
 
     def _do_request(self, request_type, url, payload):
-        _LOGGER.debug("Gigaset Elements performing request: %s", url)
+        _LOGGER.debug("Performing request: %s", url)
         if request_type == "POST":
             result = self._session.post(url, payload)
         else:
@@ -98,7 +98,7 @@ class GigasetelementsClientAPI(object):
         return result
 
     def _do_authorisation(self):
-        _LOGGER.debug("Gigaset Elements Authenticating: %s", self._username)
+        _LOGGER.debug("Authenticating: %s", self._username)
         payload = {"password": self._password, "email": self._username}
         self._do_request("POST", self._auth_url, payload)
         self._do_request("GET", self._base_url + "/v1/auth/openid/begin?op=gigaset", "")
@@ -106,7 +106,7 @@ class GigasetelementsClientAPI(object):
     def _set_property_id(self):
         result = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
         self._property_id = result.json()[0]["id"]
-        _LOGGER.debug("Get Gigaset Elements property id: %s", self._property_id)
+        _LOGGER.debug("Get property id: %s", self._property_id)
 
     def get_alarm_status(self):
 
@@ -134,18 +134,15 @@ class GigasetelementsClientAPI(object):
 
         if self._target_state == 0:
             self._target_state = self._state
-            _LOGGER.debug(
-                "Initialized Gigaset Elements target alarm state: %s",
-                self._target_state,
-            )
+
+        _LOGGER.debug(
+            "Alarm state: %s, target alarm state: %s", self._state, self._target_state
+        )
 
         if self._state == self._target_state:
             return self._state
         else:
             return STATE_ALARM_PENDING
-
-        _LOGGER.debug("Get Gigaset Elements alarm state: %s", self._state)
-        _LOGGER.debug("Target Gigaset Elements alarm state: %s", self._target_state)
 
     def get_alarm_health(self):
 
@@ -159,19 +156,18 @@ class GigasetelementsClientAPI(object):
             if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
                 self._state = STATE_ALARM_TRIGGERED
                 _LOGGER.debug(
-                    "Get Gigaset Elements trigger state: %s",
-                    result.json()["status_msg_id"],
+                    "Get trigger state: %s", result.json()["status_msg_id"],
                 )
         else:
             self._health = STATE_UNKNOWN
 
-        _LOGGER.debug("Get Gigaset Elements health state: %s", self._health)
+        _LOGGER.debug("Get health state: %s", self._health)
 
         return self._health
 
     def set_alarm_status(self, action):
 
-        _LOGGER.debug("Setting Gigaset Elements alarm panel to %s", action)
+        _LOGGER.debug("Setting alarm panel to %s", action)
 
         self._last_updated = time.time()
         self._target_state = action
@@ -193,7 +189,7 @@ class GigasetelementsClientAPI(object):
         return
 
     def update(self):
-        _LOGGER.debug("Updated Gigaset Elements %s", self._name)
+        _LOGGER.debug("Updated %s", self._name)
         diff = time.time() - self._last_updated
 
         if diff > 15:

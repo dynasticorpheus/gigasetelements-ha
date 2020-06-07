@@ -37,7 +37,7 @@ class GigasetelementsModeSensor(Entity):
         self._icon = "mdi:lock-open-outline"
         self._client = client
         self.update()
-        _LOGGER.debug("Initialized Gigaset Elements sensor: %s", self._name)
+        _LOGGER.debug("Initialized sensor: %s", self._name)
 
     @property
     def name(self):
@@ -80,7 +80,7 @@ class GigasetelementsHealthSensor(Entity):
         self._icon = "mdi:shield-check-outline"
         self._client = client
         self.update()
-        _LOGGER.debug("Initialized Gigaset Elements sensor: %s", self._name)
+        _LOGGER.debug("Initialized sensor: %s", self._name)
 
     @property
     def name(self):
