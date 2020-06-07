@@ -6,6 +6,8 @@ HEADER_GSE = {
     "cache-control": "no-cache",
 }
 
+PENDING_STATE_THRESHOLD = 60
+
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_API = "https://api.gigaset-elements.de/api"
 

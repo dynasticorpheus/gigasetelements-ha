@@ -32,6 +32,7 @@ from homeassistant.const import (
 from .const import (
     AUTH_GSE_EXPIRE,
     HEADER_GSE,
+    PENDING_STATE_THRESHOLD,
     URL_GSE_AUTH,
     URL_GSE_API,
     STATE_HEALTH_GREEN,
@@ -85,6 +86,7 @@ class GigasetelementsClientAPI(object):
         self._basestation_id = 0
         self._last_updated = 0
         self._last_authenticated = 0
+        self._pending_time = 0
         self._target_state = 0
         self._state = self.get_alarm_status()
         self._health = self.get_alarm_health()
@@ -139,8 +141,16 @@ class GigasetelementsClientAPI(object):
             "Alarm state: %s, target alarm state: %s", self._state, self._target_state
         )
 
+        diff = time.time() - self._pending_time
         if self._state == self._target_state:
+            self._pending_time = time.time()
             return self._state
+        elif diff > PENDING_STATE_THRESHOLD:
+            self._target_state = self._state
+            _LOGGER.debug(
+                "Pending time threshold reached, syncing alarm target state: %s",
+                self._target_state,
+            )
         else:
             return STATE_ALARM_PENDING
 
@@ -169,6 +179,7 @@ class GigasetelementsClientAPI(object):
 
         _LOGGER.debug("Setting alarm panel to %s", action)
 
+        self._pending_time = time.time()
         self._last_updated = time.time()
         self._target_state = action
         self._state = STATE_ALARM_PENDING
@@ -187,13 +198,6 @@ class GigasetelementsClientAPI(object):
             "POST", self._base_url + "/v1/me/basestations/" + self._property_id, payload
         )
         return
-
-    def update(self):
-        _LOGGER.debug("Updated %s", self._name)
-        diff = time.time() - self._last_updated
-
-        if diff > 15:
-            self.get_alarm_status()
 
     @property
     def target_state(self):
