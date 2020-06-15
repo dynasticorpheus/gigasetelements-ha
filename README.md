@@ -26,14 +26,12 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
   name:
   username:
   password:
-  scan_interval:
 ```
 
 ### Parameters
 * `name`: Name of the sensor (e.g. gigaset_elements).
 * `username`: Gigaset Elements username. [https://app.gigaset-elements.com](https://app.gigaset-elements.com/)   
 * `password`: Gigaset Elements password.
-* `scan_interval`: (Optional) Set how many seconds should pass in between refreshes. Don't set this to low to avoid issues.
 
 ### Example
 ```yaml
@@ -41,7 +39,6 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
   name: gigaset_elements
   username: !secret gigasetelements_username
   password: !secret gigasetelements_password
-  scan_interval: 60
 ```
 
 ## Current integrations
