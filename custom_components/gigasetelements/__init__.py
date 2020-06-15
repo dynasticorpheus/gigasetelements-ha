@@ -110,7 +110,7 @@ class GigasetelementsClientAPI(object):
         self._property_id = result.json()[0]["id"]
         _LOGGER.debug("Get property id: %s", self._property_id)
 
-    def get_alarm_status(self):
+    def get_alarm_status(self, cached=False):
 
         if (
             self._last_authenticated == 0
@@ -122,7 +122,13 @@ class GigasetelementsClientAPI(object):
         if self._property_id == 0:
             self._set_property_id()
 
-        if self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
+        if cached:
+            _LOGGER.debug(
+                "Cached state returned, age: %s",
+                str(int(time.time() - self._last_updated)),
+            )
+            return self._state
+        elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
             return self._state
 
         result = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
@@ -139,6 +145,8 @@ class GigasetelementsClientAPI(object):
 
         if self._target_state == 0:
             self._target_state = self._state
+
+        self._last_updated = time.time()
 
         _LOGGER.debug(
             "Alarm state: %s, target alarm state: %s", self._state, self._target_state
@@ -181,7 +189,6 @@ class GigasetelementsClientAPI(object):
         _LOGGER.debug("Setting alarm panel to %s", action)
 
         self._pending_time = time.time()
-        self._last_updated = time.time()
         self._target_state = action
         self._state = STATE_ALARM_PENDING
 

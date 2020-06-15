@@ -11,6 +11,8 @@ PENDING_STATE_THRESHOLD = 60
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_API = "https://api.gigaset-elements.de/api"
 
+STATE_UPDATE_INTERVAL = 5
+
 STATE_HEALTH_GREEN = "green"
 STATE_HEALTH_ORANGE = "orange"
 STATE_HEALTH_RED = "red"

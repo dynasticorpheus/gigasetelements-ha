@@ -1,3 +1,7 @@
+"""
+Gigaset Elements platform that offers a control over alarm status.
+"""
+from datetime import timedelta
 import logging
 
 from homeassistant.helpers.entity import Entity
@@ -12,12 +16,15 @@ from homeassistant.const import (
 )
 
 from .const import (
+    STATE_UPDATE_INTERVAL,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
 )
 
 DOMAIN = "gigasetelements"
+
+SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +75,7 @@ class GigasetelementsModeSensor(Entity):
             self._icon = "mdi:shield-remove"
 
     def update(self):
-        self._state = self._client.get_alarm_status()
+        self._state = self._client.get_alarm_status(cached=True)
 
         self._set_icon()
 

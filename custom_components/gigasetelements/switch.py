@@ -1,6 +1,7 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
+from datetime import timedelta
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -16,9 +17,15 @@ from homeassistant.const import (
     STATE_ALARM_TRIGGERED,
 )
 
-from .const import SWITCH_TYPE
+from .const import (
+    STATE_UPDATE_INTERVAL,
+    SWITCH_TYPE,
+)
 
 DOMAIN = "gigasetelements"
+
+SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -79,8 +86,7 @@ class GigasetelementsSwitch(SwitchEntity):
         _LOGGER.debug("Updated switch %s", self._name)
 
         diff = time.time() - self._last_updated
-        if diff > 15:
-            self._state = self._client.get_alarm_status()
+        self._state = self._client.get_alarm_status(cached=True)
 
         attributes = {}
         attributes["state"] = self._state

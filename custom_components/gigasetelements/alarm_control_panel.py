@@ -1,6 +1,7 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
+from datetime import timedelta
 import logging
 
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
@@ -20,7 +21,13 @@ from homeassistant.const import (
     STATE_ALARM_PENDING,
 )
 
+
+from .const import STATE_UPDATE_INTERVAL
+
 DOMAIN = "gigasetelements"
+
+SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -50,8 +57,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         _LOGGER.debug("Updated alarm_control_panel: %s", self._name)
 
         diff = time.time() - self._last_updated
-        if diff > 15:
-            self._state = self._client.get_alarm_status()
+        self._state = self._client.get_alarm_status()
 
     @property
     def state(self):
