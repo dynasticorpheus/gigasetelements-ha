@@ -33,15 +33,14 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
+
     for mode in SWITCH_TYPE:
-        add_devices(
-            [GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])]
-        )
+        add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
 
 
 class GigasetelementsSwitch(SwitchEntity):
     def __init__(self, hass, name, client, mode=STATE_ALARM_ARMED_AWAY):
-        _LOGGER.debug("Initialized switch: %s", name)
+
         self._hass = hass
         self._hass.custom_attributes = {}
         self._name = name
@@ -52,7 +51,10 @@ class GigasetelementsSwitch(SwitchEntity):
         self._client = client
         self.update()
 
+        _LOGGER.debug("Initialized switch: %s", name)
+
     def _set_icon(self):
+
         if self._state == STATE_ALARM_ARMED_AWAY:
             self._icon = "mdi:shield-key"
         elif self._state == STATE_ALARM_ARMED_HOME:
@@ -68,44 +70,39 @@ class GigasetelementsSwitch(SwitchEntity):
         else:
             self._icon = "mdi:shield-remove"
 
-        _LOGGER.debug("Update icon to %s", self._icon)
-
     def turn_on(self, **kwargs):
-        """Turn device on."""
+
         _LOGGER.debug("Update switch to on, mode %s ", self._mode)
+
         self._last_updated = time.time()
         self._client.set_alarm_status(self._mode)
 
     def turn_off(self, **kwargs):
-        """Turn device off."""
+
         _LOGGER.debug("Update switch to off")
+
         self._last_updated = time.time()
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
     def update(self):
-        _LOGGER.debug("Updated switch %s", self._name)
-
-        diff = time.time() - self._last_updated
-        self._state = self._client.get_alarm_status(cached=True)
 
         attributes = {}
+
+        self._state = self._client.get_alarm_status(cached=True)
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
         self._set_icon()
 
     @property
     def is_on(self):
-        """Return true if device is switching on or is on."""
         return self._client.target_state == self._mode
 
     @property
     def device_state_attributes(self):
-        """Return the state attributes of the sensor."""
         return self._hass.custom_attributes
 
     @property
     def name(self):
-        """Return the name of the device."""
         return self._name
 
     @property
@@ -122,5 +119,4 @@ class GigasetelementsSwitch(SwitchEntity):
 
     @property
     def should_poll(self):
-        """Polling is needed."""
         return True
