@@ -42,15 +42,19 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     door_sensor_list = client.get_sensor_list("door_sensor")
     for id in door_sensor_list:
-        add_devices([GigasetelementsDoorSensor(name + "_door_" + id, client)])
+        add_devices([GigasetelementsSensor(name + "_door_" + id, client)])
 
     window_sensor_list = client.get_sensor_list("window_sensor")
     for id in window_sensor_list:
-        add_devices([GigasetelementsWindowSensor(name + "_window_" + id, client)])
+        add_devices([GigasetelementsSensor(name + "_window_" + id, client)])
+
+    universal_sensor_list = client.get_sensor_list("universal")
+    for id in universal_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_universal_" + id, client)])
 
     smoke_sensor_list = client.get_sensor_list("smoke")
     for id in smoke_sensor_list:
-        add_devices([GigasetelementsSmokeSensor(name + "_smoke_" + id, client)])
+        add_devices([GigasetelementsSensor(name + "_smoke_" + id, client)])
 
 
 class GigasetelementsStateSensor(Entity):
@@ -139,17 +143,18 @@ class GigasetelementsHealthSensor(Entity):
         self._set_icon()
 
 
-class GigasetelementsDoorSensor(Entity):
+class GigasetelementsSensor(Entity):
     def __init__(self, name, client):
 
         self._name = name
         self._id = name.rsplit("_", 1)[1]
+        self._type_name = name.rsplit("_", 2)[1]
         self._position = STATE_CLOSED
         self._icon = "mdi:door-closed"
         self._client = client
         self.update()
 
-        _LOGGER.debug("Initialized door sensor: %s", self._name)
+        _LOGGER.debug("Initialized %s sensor: %s", self._type_name, self._name)
 
     @property
     def name(self):
@@ -165,100 +170,40 @@ class GigasetelementsDoorSensor(Entity):
 
     def _set_icon(self):
 
-        if self._position == STATE_CLOSED:
-            self._icon = "mdi:door-closed"
-        elif self._position == STATE_OPEN:
-            self._icon = "mdi:door-open"
-        else:
-            self._icon = "mdi:cloud-question"
+        if self._type_name == "smoke":
+            if self._position == "on":
+                self._icon = "mdi:fire"
+            elif self._position == "off":
+                self._icon = "mdi:smoke-detector"
+            else:
+                self._icon = "mdi:cloud-question"
+
+        elif self._type_name == "door":
+            if self._position == STATE_CLOSED:
+                self._icon = "mdi:door-closed"
+            elif self._position == STATE_OPEN:
+                self._icon = "mdi:door-open"
+            else:
+                self._icon = "mdi:cloud-question"
+
+        elif self._type_name in ("windows", "universal"):
+            if self._position == STATE_CLOSED:
+                self._icon = "mdi:window-closed"
+            elif self._position == STATE_OPEN:
+                self._icon = "mdi:window-open"
+            elif self._position == STATE_TILTED:
+                self._icon = "mdi:window-open"
+            else:
+                self._icon = "mdi:cloud-question"
 
     def update(self):
 
-        self._position = self._client.get_sensor_state(
-            sensor_id=self._id, sensor_attribute="positionStatus"
-        )
-        self._set_icon()
-
-
-class GigasetelementsWindowSensor(Entity):
-    def __init__(self, name, client):
-
-        self._name = name
-        self._id = name.rsplit("_", 1)[1]
-        self._position = STATE_CLOSED
-        self._icon = "mdi:window-closed"
-        self._client = client
-        self.update()
-
-        _LOGGER.debug("Initialized window sensor: %s", self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def state(self):
-        return self._position
-
-    @property
-    def icon(self):
-        return self._icon
-
-    def _set_icon(self):
-
-        if self._position == STATE_CLOSED:
-            self._icon = "mdi:window-closed"
-        elif self._position == STATE_OPEN:
-            self._icon = "mdi:window-open"
-        elif self._position == STATE_TILTED:
-            self._icon = "mdi:window-open"
-        else:
-            self._icon = "mdi:cloud-question"
-
-    def update(self):
+        if self._type_name in ("door", "windows", "universal"):
+            attribute = "positionStatus"
+        elif self._type_name == "smoke":
+            attribute = "smokeDetected"
 
         self._position = self._client.get_sensor_state(
-            sensor_id=self._id, sensor_attribute="positionStatus"
-        )
-        self._set_icon()
-
-
-class GigasetelementsSmokeSensor(Entity):
-    def __init__(self, name, client):
-
-        self._name = name
-        self._id = name.rsplit("_", 1)[1]
-        self._position = STATE_CLOSED
-        self._icon = "mdi:smoke-detector"
-        self._client = client
-        self.update()
-
-        _LOGGER.debug("Initialized smoke sensor: %s", self._name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def state(self):
-        return self._position
-
-    @property
-    def icon(self):
-        return self._icon
-
-    def _set_icon(self):
-
-        if self._position == "on":
-            self._icon = "mdi:fire"
-        elif self._position == "off":
-            self._icon = "mdi:smoke-detector"
-        else:
-            self._icon = "mdi:cloud-question"
-
-    def update(self):
-
-        self._position = self._client.get_sensor_state(
-            sensor_id=self._id, sensor_attribute="smokeDetected"
+            sensor_id=self._id, sensor_attribute=attribute
         )
         self._set_icon()

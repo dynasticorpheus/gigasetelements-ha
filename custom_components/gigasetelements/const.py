@@ -31,7 +31,7 @@ SENSOR_NAME = {
     "bn01": "button",
     "yc01": "camera",
     "sd01": "smoke",
-    "um01": "umos",
+    "um01": "universal",
     "hb01": "hue_bridge",
     "hb01.hl01": "hue_light",
     "bs01": "base_station",
