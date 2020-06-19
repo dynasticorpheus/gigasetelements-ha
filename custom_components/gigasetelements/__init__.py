@@ -89,7 +89,6 @@ class GigasetelementsClientAPI(object):
         self._headers = HEADER_GSE
         self._username = username
         self._password = password
-        self._property_id = 0
         self._basestation_id = 0
         self._last_updated = 0
         self._pending_time = 0
@@ -100,6 +99,7 @@ class GigasetelementsClientAPI(object):
         self._health = STATE_HEALTH_GREEN
         self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
+        self._property_id = self._set_property_id()
 
     def _do_request(self, request_type, url, payload):
 
@@ -123,12 +123,16 @@ class GigasetelementsClientAPI(object):
 
     def _set_property_id(self):
 
+        property_id = 0
+
         self._basestation_data = self._do_request(
             "GET", self._base_url + "/v1/me/basestations", ""
         )
-        self._property_id = self._basestation_data.json()[0]["id"]
+        property_id = self._basestation_data.json()[0]["id"]
 
-        _LOGGER.debug("Get property id: %s", self._property_id)
+        _LOGGER.debug("Get property id: %s", property_id)
+
+        return property_id
 
     def get_alarm_status(self, cached=False):
 
@@ -139,7 +143,7 @@ class GigasetelementsClientAPI(object):
             self._last_authenticated = self._do_authorisation()
 
         if self._property_id == 0:
-            self._set_property_id()
+            self._property_id = self._set_property_id()
 
         if not cached or self._elements_data == 0:
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
