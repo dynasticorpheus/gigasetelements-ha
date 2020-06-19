@@ -3,7 +3,7 @@ AUTH_GSE_EXPIRE = 14400
 
 HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
-    "cache-control": "no-cache",
+    "content-type": "application/json; charset=UTF-8",
 }
 
 PENDING_STATE_THRESHOLD = 30

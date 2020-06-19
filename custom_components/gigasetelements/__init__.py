@@ -92,22 +92,23 @@ class GigasetelementsClientAPI(object):
         self._property_id = 0
         self._basestation_id = 0
         self._last_updated = 0
-        self._last_authenticated = 0
         self._pending_time = 0
         self._target_state = 0
         self._basestation_data = 0
         self._elements_data = 0
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
+        self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
+        self._last_authenticated = self._do_authorisation()
 
     def _do_request(self, request_type, url, payload):
 
         _LOGGER.debug("API request: %s", url)
 
         if request_type == "POST":
-            result = self._session.post(url, payload)
+            result = self._session.post(url, payload, headers=self._headers)
         else:
-            result = self._session.get(url)
+            result = self._session.get(url, headers=self._headers)
         return result
 
     def _do_authorisation(self):
@@ -118,10 +119,14 @@ class GigasetelementsClientAPI(object):
         self._do_request("POST", self._auth_url, payload)
         self._do_request("GET", self._base_url + "/v1/auth/openid/begin?op=gigaset", "")
 
+        return time.time()
+
     def _set_property_id(self):
 
-        result = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
-        self._property_id = result.json()[0]["id"]
+        self._basestation_data = self._do_request(
+            "GET", self._base_url + "/v1/me/basestations", ""
+        )
+        self._property_id = self._basestation_data.json()[0]["id"]
 
         _LOGGER.debug("Get property id: %s", self._property_id)
 
@@ -131,8 +136,7 @@ class GigasetelementsClientAPI(object):
             self._last_authenticated == 0
             or time.time() - self._last_authenticated > AUTH_GSE_EXPIRE
         ):
-            self._do_authorisation()
-            self._last_authenticated = time.time()
+            self._last_authenticated = self._do_authorisation()
 
         if self._property_id == 0:
             self._set_property_id()
@@ -217,6 +221,23 @@ class GigasetelementsClientAPI(object):
 
         return sensor_state
 
+    def get_plug_state(self, sensor_id):
+
+        plug_state = STATE_UNKNOWN
+
+        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+            if item["id"] == self._property_id + "." + sensor_id:
+                if item["states"]["relay"] == "off":
+                    plug_state = STATE_OFF
+                elif item["states"]["relay"] == "on":
+                    plug_state = STATE_ON
+                else:
+                    plug_state = STATE_UNKNOWN
+
+        _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
+
+        return plug_state
+
     def get_alarm_health(self):
 
         result = self._do_request("GET", self._base_url + "/v2/me/health", "")
@@ -256,6 +277,25 @@ class GigasetelementsClientAPI(object):
         payload = json.dumps(switch)
         self._do_request(
             "POST", self._base_url + "/v1/me/basestations/" + self._property_id, payload
+        )
+
+        return
+
+    def set_plug_status(self, id, action):
+
+        _LOGGER.debug("Set plug %s: %s", id, action)
+
+        switch = {"name": action}
+        payload = json.dumps(switch)
+        self._do_request(
+            "POST",
+            self._base_url
+            + "/v1/me/basestations/"
+            + self._property_id
+            + "/endnodes/"
+            + id
+            + "/cmd",
+            payload,
         )
 
         return

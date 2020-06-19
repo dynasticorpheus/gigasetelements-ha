@@ -15,6 +15,8 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
+    STATE_ON,
+    STATE_OFF,
 )
 
 from .const import (
@@ -36,6 +38,79 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     for mode in SWITCH_TYPE:
         add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
+
+    smart_plug_list = client.get_sensor_list("smart_plug")
+    for id in smart_plug_list:
+        add_devices([GigasetelementsPlugSwitch(hass, name + "_plug_" + id, client, STATE_OFF)])
+
+
+class GigasetelementsPlugSwitch(SwitchEntity):
+    def __init__(self, hass, name, client, mode=STATE_ON):
+
+        self._hass = hass
+        self._name = name
+        self._id = name.rsplit("_", 1)[1]
+        self._type_name = name.rsplit("_", 2)[1]
+        self._icon = "mdi:power-plug-off"
+        self._state = STATE_OFF
+        self._client = client
+        self.update()
+
+        _LOGGER.debug("Initialized %s switch: %s", self._type_name, self._name)
+
+    def _set_icon(self):
+
+        if self._state == STATE_ON:
+            self._icon = "mdi:power-plug"
+        elif self._state == STATE_OFF:
+            self._icon = "mdi:power-plug-off"
+        else:
+            self._icon = "mdi:cloud-question"
+
+    def turn_on(self, **kwargs):
+
+        self._client.set_plug_status(id=self._id, action=STATE_ON)
+
+    def turn_off(self, **kwargs):
+
+        self._client.set_plug_status(id=self._id, action=STATE_OFF)
+
+    def update(self):
+
+        attributes = {}
+
+        self._state = self._client.get_plug_state(sensor_id=self._id)
+        attributes["state"] = self._state
+        self._hass.custom_attributes = attributes
+        self._set_icon()
+
+    @property
+    def is_on(self):
+        return self._state == STATE_ON
+
+    @property
+    def device_state_attributes(self):
+        return self._hass.custom_attributes
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def icon(self):
+        return self._icon
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, m):
+        self._mode = m
+
+    @property
+    def should_poll(self):
+        return True
 
 
 class GigasetelementsSwitch(SwitchEntity):
