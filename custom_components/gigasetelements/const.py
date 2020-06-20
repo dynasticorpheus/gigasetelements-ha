@@ -37,6 +37,7 @@ SENSOR_NAME = {
     "bs01": "base_station",
     "wd01": "water_sensor",
     "cl01": "climate_sensor",
+    "ts01": "thermostat",
 }
 
 SWITCH_TYPE = {
