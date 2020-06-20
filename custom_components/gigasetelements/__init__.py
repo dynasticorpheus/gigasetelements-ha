@@ -15,6 +15,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers import discovery
 
+from urllib.parse import urlparse
 import json
 import requests
 import time
@@ -103,13 +104,22 @@ class GigasetelementsClientAPI(object):
 
     def _do_request(self, request_type, url, payload):
 
-        _LOGGER.debug("API request: %s", url)
-
         if request_type == "POST":
-            result = self._session.post(url, payload, headers=self._headers)
+            response = self._session.post(url, payload, headers=self._headers)
         else:
-            result = self._session.get(url, headers=self._headers)
-        return result
+            response = self._session.get(url, headers=self._headers)
+
+        if response.status_code != requests.codes.ok:
+            _LOGGER.debug(
+                "API request: [%s] %s %s",
+                response.status_code,
+                response.reason,
+                urlparse(url).path,
+            )
+        else:
+            _LOGGER.debug("API request: [%s] %s", response.status_code, urlparse(url).path)
+
+        return response
 
     def _do_authorisation(self):
 
