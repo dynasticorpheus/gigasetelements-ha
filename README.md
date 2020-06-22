@@ -25,7 +25,7 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
 
 ### Schema
 ```yaml
-- platform: gigasetelements
+gigasetelements:
   name:
   username:
   password:
@@ -38,7 +38,7 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
 
 ### Example
 ```yaml
-- platform: gigasetelements
+gigasetelements:
   name: gigaset_elements
   username: !secret gigasetelements_username
   password: !secret gigasetelements_password
