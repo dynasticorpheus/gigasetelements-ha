@@ -46,8 +46,9 @@ gigasetelements:
 
 ## Current integrations
 * Alarm Control Panel
-* Sensor (state, health)
+* Sensor (state, health, door, window, smoke)
 * Switch (away, night, custom)
+* Smart Plug
 
 ## Credits
 Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.
