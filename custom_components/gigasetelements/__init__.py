@@ -150,7 +150,8 @@ class GigasetelementsClientAPI(object):
             self._last_authenticated == 0
             or time.time() - self._last_authenticated > AUTH_GSE_EXPIRE
         ):
-            self._last_authenticated = self._do_authorisation()
+            if not cached:
+                self._last_authenticated = self._do_authorisation()
 
         if self._property_id == 0:
             self._property_id = self._set_property_id()
