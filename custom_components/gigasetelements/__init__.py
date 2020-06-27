@@ -45,6 +45,8 @@ from .const import (
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
     STATE_TILTED,
+    STATE_MOTION_DETECTED,
+    STATE_MOTION_CLEAR,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,12 +97,14 @@ class GigasetelementsClientAPI(object):
         self._pending_time = 0
         self._target_state = 0
         self._basestation_data = 0
+        self._motion_data = 0
         self._elements_data = 0
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
         self._property_id = self._set_property_id()
+        self._last_motion = str(int(time.time()) * 1000)
 
     def _do_request(self, request_type, url, payload):
 
@@ -158,6 +162,13 @@ class GigasetelementsClientAPI(object):
 
         if not cached or self._elements_data == 0:
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
+
+        if not cached or self._motion_data == 0:
+            self._motion_data = self._do_request(
+                "GET",
+                self._base_url + "/v2/me/events?group=motion&from_ts=" + self._last_motion,
+                "",
+            )
 
         if cached:
             return self._state
@@ -314,6 +325,19 @@ class GigasetelementsClientAPI(object):
         )
 
         return
+
+    def get_motion_detected(self, sensor_id):
+
+        sensor_state = STATE_MOTION_CLEAR
+
+        for item in reversed(self._motion_data.json()["events"]):
+            if item["o"]["id"] == sensor_id:
+                self._last_motion = str(int(item["ts"]) + 1)
+                sensor_state = STATE_MOTION_DETECTED
+
+        _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
+
+        return sensor_state
 
     @property
     def target_state(self):

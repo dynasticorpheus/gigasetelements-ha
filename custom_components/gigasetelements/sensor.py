@@ -15,6 +15,9 @@ from homeassistant.const import (
     STATE_ALARM_TRIGGERED,
     STATE_CLOSED,
     STATE_OPEN,
+    STATE_ON,
+    STATE_OFF,
+    STATE_UNKNOWN,
 )
 
 from .const import (
@@ -23,6 +26,8 @@ from .const import (
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
     STATE_TILTED,
+    STATE_MOTION_DETECTED,
+    STATE_MOTION_CLEAR,
 )
 
 DOMAIN = "gigasetelements"
@@ -56,13 +61,17 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for id in smoke_sensor_list:
         add_devices([GigasetelementsSensor(name + "_smoke_" + id, client)])
 
+    motion_sensor_list = client.get_sensor_list("presence_sensor")
+    for id in motion_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_motion_" + id, client)])
+
 
 class GigasetelementsStateSensor(Entity):
     def __init__(self, name, client):
 
         self._name = name
-        self._state = STATE_ALARM_DISARMED
-        self._icon = "mdi:lock-open-outline"
+        self._state = STATE_UNKNOWN
+        self._icon = "mdi:cloud-question"
         self._client = client
         self.update()
 
@@ -107,8 +116,8 @@ class GigasetelementsHealthSensor(Entity):
     def __init__(self, name, client):
 
         self._name = name
-        self._health = STATE_HEALTH_GREEN
-        self._icon = "mdi:shield-check-outline"
+        self._health = STATE_UNKNOWN
+        self._icon = "mdi:cloud-question"
         self._client = client
         self.update()
 
@@ -149,8 +158,8 @@ class GigasetelementsSensor(Entity):
         self._name = name
         self._id = name.rsplit("_", 1)[1]
         self._type_name = name.rsplit("_", 2)[1]
-        self._position = STATE_CLOSED
-        self._icon = "mdi:door-closed"
+        self._sensor_state = STATE_UNKNOWN
+        self._icon = "mdi:cloud-question"
         self._client = client
         self.update()
 
@@ -162,7 +171,7 @@ class GigasetelementsSensor(Entity):
 
     @property
     def state(self):
-        return self._position
+        return self._sensor_state
 
     @property
     def icon(self):
@@ -171,28 +180,36 @@ class GigasetelementsSensor(Entity):
     def _set_icon(self):
 
         if self._type_name == "smoke":
-            if self._position == "on":
+            if self._sensor_state == STATE_ON:
                 self._icon = "mdi:fire"
-            elif self._position == "off":
+            elif self._sensor_state == STATE_OFF:
                 self._icon = "mdi:smoke-detector"
             else:
                 self._icon = "mdi:cloud-question"
 
         elif self._type_name == "door":
-            if self._position == STATE_CLOSED:
+            if self._sensor_state == STATE_CLOSED:
                 self._icon = "mdi:door-closed"
-            elif self._position == STATE_OPEN:
+            elif self._sensor_state == STATE_OPEN:
                 self._icon = "mdi:door-open"
             else:
                 self._icon = "mdi:cloud-question"
 
         elif self._type_name in ("windows", "universal"):
-            if self._position == STATE_CLOSED:
+            if self._sensor_state == STATE_CLOSED:
                 self._icon = "mdi:window-closed"
-            elif self._position == STATE_OPEN:
+            elif self._sensor_state == STATE_OPEN:
                 self._icon = "mdi:window-open"
-            elif self._position == STATE_TILTED:
+            elif self._sensor_state == STATE_TILTED:
                 self._icon = "mdi:window-open"
+            else:
+                self._icon = "mdi:cloud-question"
+
+        elif self._type_name == "motion":
+            if self._sensor_state == STATE_MOTION_DETECTED:
+                self._icon = "mdi:run"
+            elif self._sensor_state == STATE_MOTION_CLEAR:
+                self._icon = "mdi:walk"
             else:
                 self._icon = "mdi:cloud-question"
 
@@ -203,7 +220,11 @@ class GigasetelementsSensor(Entity):
         elif self._type_name == "smoke":
             attribute = "smokeDetected"
 
-        self._position = self._client.get_sensor_state(
-            sensor_id=self._id, sensor_attribute=attribute
-        )
+        if self._type_name in ("door", "windows", "universal", "smoke"):
+            self._sensor_state = self._client.get_sensor_state(
+                sensor_id=self._id, sensor_attribute=attribute
+            )
+        elif self._type_name in ("motion"):
+            self._sensor_state = self._client.get_motion_detected(sensor_id=self._id)
+
         self._set_icon()
