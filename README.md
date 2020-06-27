@@ -46,7 +46,7 @@ gigasetelements:
 
 ## Current integrations
 * Alarm Control Panel
-* Sensor (state, health, door, window, smoke)
+* Sensor (state, health, door, window, smoke, motion)
 * Switch (away, night, custom)
 * Smart Plug
 
