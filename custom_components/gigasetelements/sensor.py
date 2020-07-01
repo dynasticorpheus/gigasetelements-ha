@@ -65,6 +65,10 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for id in motion_sensor_list:
         add_devices([GigasetelementsSensor(name + "_motion_" + id, client)])
 
+    camera_sensor_list = client.get_sensor_list("camera")
+    for id in camera_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_motion_" + id, client)])
+
 
 class GigasetelementsStateSensor(Entity):
     def __init__(self, name, client):

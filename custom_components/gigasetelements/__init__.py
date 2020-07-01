@@ -105,6 +105,7 @@ class GigasetelementsClientAPI(object):
         self._last_authenticated = self._do_authorisation()
         self._property_id = self._set_property_id()
         self._last_motion = str(int(time.time()) * 1000)
+        self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
 
     def _do_request(self, request_type, url, payload):
 
@@ -165,9 +166,7 @@ class GigasetelementsClientAPI(object):
 
         if not cached or self._motion_data == 0:
             self._motion_data = self._do_request(
-                "GET",
-                self._base_url + "/v2/me/events?group=motion&from_ts=" + self._last_motion,
-                "",
+                "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_motion, "",
             )
 
         if cached:
@@ -214,11 +213,19 @@ class GigasetelementsClientAPI(object):
 
         sensor_id_list = []
 
-        for sensor_code, sensor_fullname in SENSOR_NAME.items():
-            if sensor_fullname == sensor_type:
-                for item in self._basestation_data.json()[0]["sensors"]:
-                    if item["type"] == sensor_code:
-                        sensor_id_list.append(item["id"])
+        if sensor_type == "camera":
+            try:
+                for item in self._camera_data.json():
+                    sensor_id_list.append(item["id"].lower())
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
+                pass
+        else:
+            for sensor_code, sensor_fullname in SENSOR_NAME.items():
+                if sensor_fullname == sensor_type:
+                    for item in self._basestation_data.json()[0]["sensors"]:
+                        if item["type"] == sensor_code:
+                            sensor_id_list.append(item["id"])
 
         _LOGGER.debug("Get %s ids: %s", sensor_type, sensor_id_list)
 
@@ -331,9 +338,14 @@ class GigasetelementsClientAPI(object):
         sensor_state = STATE_MOTION_CLEAR
 
         for item in reversed(self._motion_data.json()["events"]):
-            if item["o"]["id"] == sensor_id:
+            if item["type"] == "yc01.motion" and item["source_id"].lower() == sensor_id:
                 self._last_motion = str(int(item["ts"]) + 1)
                 sensor_state = STATE_MOTION_DETECTED
+            elif item["type"] == "movement" and item["o"]["id"] == sensor_id:
+                self._last_motion = str(int(item["ts"]) + 1)
+                sensor_state = STATE_MOTION_DETECTED
+            else:
+                continue
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
