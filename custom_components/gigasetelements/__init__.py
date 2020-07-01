@@ -27,8 +27,6 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
-    STATE_CLOSED,
-    STATE_OPEN,
     STATE_UNKNOWN,
     STATE_ON,
     STATE_OFF,
@@ -40,13 +38,11 @@ from .const import (
     PENDING_STATE_THRESHOLD,
     URL_GSE_AUTH,
     URL_GSE_API,
+    URL_GSE_CLOUD,
     SENSOR_NAME,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
-    STATE_TILTED,
-    STATE_MOTION_DETECTED,
-    STATE_MOTION_CLEAR,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,9 +72,10 @@ def setup(hass, config):
     client = GigasetelementsClientAPI(username, password)
 
     hass.data[DOMAIN] = {"client": client, "name": name}
+    hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
+    hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
 
     return True
 
@@ -89,6 +86,7 @@ class GigasetelementsClientAPI(object):
         self._session = requests.Session()
         self._auth_url = URL_GSE_AUTH
         self._base_url = URL_GSE_API
+        self._cloud_url = URL_GSE_CLOUD
         self._headers = HEADER_GSE
         self._username = username
         self._password = password
@@ -96,16 +94,17 @@ class GigasetelementsClientAPI(object):
         self._last_updated = 0
         self._pending_time = 0
         self._target_state = 0
-        self._basestation_data = 0
-        self._motion_data = 0
-        self._elements_data = 0
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
+        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
+        self._cloud = self._do_request("GET", self._cloud_url, "")
+        self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
+        self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
+        self._motion_data = self._do_request("GET", self._base_url + "/v2/me/events", "")
         self._property_id = self._set_property_id()
         self._last_motion = str(int(time.time()) * 1000)
-        self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
 
     def _do_request(self, request_type, url, payload):
 
@@ -140,9 +139,7 @@ class GigasetelementsClientAPI(object):
 
         property_id = 0
 
-        self._basestation_data = self._do_request(
-            "GET", self._base_url + "/v1/me/basestations", ""
-        )
+        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
         property_id = self._basestation_data.json()[0]["id"]
 
         _LOGGER.debug("Get property id: %s", property_id)
@@ -151,20 +148,13 @@ class GigasetelementsClientAPI(object):
 
     def get_alarm_status(self, cached=False):
 
-        if (
-            self._last_authenticated == 0
-            or time.time() - self._last_authenticated > AUTH_GSE_EXPIRE
-        ):
+        if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
             if not cached:
                 self._last_authenticated = self._do_authorisation()
 
-        if self._property_id == 0:
-            self._property_id = self._set_property_id()
-
-        if not cached or self._elements_data == 0:
+        if not cached:
+            self._cloud = self._do_request("GET", self._cloud_url, "")
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
-
-        if not cached or self._motion_data == 0:
             self._motion_data = self._do_request(
                 "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_motion, "",
             )
@@ -174,9 +164,7 @@ class GigasetelementsClientAPI(object):
         elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
             return self._state
 
-        self._basestation_data = self._do_request(
-            "GET", self._base_url + "/v1/me/basestations", ""
-        )
+        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
 
         if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
             self._state = STATE_ALARM_ARMED_AWAY
@@ -233,22 +221,20 @@ class GigasetelementsClientAPI(object):
 
     def get_sensor_state(self, sensor_id, sensor_attribute):
 
-        sensor_state = STATE_UNKNOWN
+        sensor_state = False
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
             if item["id"] == self._property_id + "." + sensor_id:
                 if item[sensor_attribute] == "closed":
-                    sensor_state = STATE_CLOSED
+                    sensor_state = False
                 elif item[sensor_attribute] == "tilted":
-                    sensor_state = STATE_TILTED
+                    sensor_state = True
                 elif item[sensor_attribute] == "open":
-                    sensor_state = STATE_OPEN
+                    sensor_state = True
                 elif not item[sensor_attribute]:
-                    sensor_state = STATE_OFF
+                    sensor_state = False
                 elif item[sensor_attribute]:
-                    sensor_state = STATE_ON
-                else:
-                    sensor_state = STATE_UNKNOWN
+                    sensor_state = True
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
@@ -286,7 +272,7 @@ class GigasetelementsClientAPI(object):
         else:
             self._health = STATE_UNKNOWN
 
-        _LOGGER.debug("Get health state: %s", self._health)
+        _LOGGER.debug("Health state: %s", self._health)
 
         return self._health
 
@@ -335,21 +321,24 @@ class GigasetelementsClientAPI(object):
 
     def get_motion_detected(self, sensor_id):
 
-        sensor_state = STATE_MOTION_CLEAR
+        sensor_state = False
 
         for item in reversed(self._motion_data.json()["events"]):
             if item["type"] == "yc01.motion" and item["source_id"].lower() == sensor_id:
                 self._last_motion = str(int(item["ts"]) + 1)
-                sensor_state = STATE_MOTION_DETECTED
+                sensor_state = True
             elif item["type"] == "movement" and item["o"]["id"] == sensor_id:
                 self._last_motion = str(int(item["ts"]) + 1)
-                sensor_state = STATE_MOTION_DETECTED
+                sensor_state = True
             else:
                 continue
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
         return sensor_state
+
+    def get_cloud_state(self):
+        return not self._cloud.json()["isMaintenance"]
 
     @property
     def target_state(self):

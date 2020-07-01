@@ -1,6 +1,15 @@
 """Constants used by Gigaset Elements custom component."""
 AUTH_GSE_EXPIRE = 14400
 
+DEVICE_CLASS_MAP = {
+    "elements": "connectivity",
+    "door": "door",
+    "motion": "motion",
+    "smoke": "smoke",
+    "universal": "door",
+    "window": "window",
+}
+
 HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
     "content-type": "application/json; charset=UTF-8",
@@ -10,6 +19,7 @@ PENDING_STATE_THRESHOLD = 30
 
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_API = "https://api.gigaset-elements.de/api"
+URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
 
 STATE_UPDATE_INTERVAL = 10
 
