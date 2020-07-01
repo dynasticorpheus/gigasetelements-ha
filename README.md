@@ -46,9 +46,9 @@ gigasetelements:
 
 ## Current integrations
 * Alarm Control Panel
-* Sensor (state, health, door, window, smoke, motion)
-* Switch (away, night, custom)
-* Smart Plug
+* Binary Sensor (door, window, smoke, motion, camera_motion, universal, cloud)
+* Sensor (state, health)
+* Switch (away, night, custom, plug)
 
 ## Credits
 Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.

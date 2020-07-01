@@ -207,7 +207,6 @@ class GigasetelementsClientAPI(object):
                     sensor_id_list.append(item["id"].lower())
             except (KeyError, ValueError) as err:
                 _LOGGER.debug(err)
-                pass
         else:
             for sensor_code, sensor_fullname in SENSOR_NAME.items():
                 if sensor_fullname == sensor_type:
