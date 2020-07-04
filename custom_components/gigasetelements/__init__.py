@@ -34,6 +34,8 @@ from homeassistant.const import (
 
 from .const import (
     AUTH_GSE_EXPIRE,
+    DEVICE_NO_BATTERY,
+    DEVICE_TRIGGERS,
     HEADER_GSE,
     PENDING_STATE_THRESHOLD,
     URL_GSE_AUTH,
@@ -90,7 +92,6 @@ class GigasetelementsClientAPI(object):
         self._headers = HEADER_GSE
         self._username = username
         self._password = password
-        self._basestation_id = 0
         self._last_updated = 0
         self._pending_time = 0
         self._target_state = 0
@@ -102,9 +103,9 @@ class GigasetelementsClientAPI(object):
         self._cloud = self._do_request("GET", self._cloud_url, "")
         self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
         self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
-        self._motion_data = self._do_request("GET", self._base_url + "/v2/me/events", "")
+        self._last_event = str(int(time.time()) * 1000)
+        self._event_data = self._do_request("GET", self._base_url + "/v2/me/events?limit=1", "")
         self._property_id = self._set_property_id()
-        self._last_motion = str(int(time.time()) * 1000)
 
     def _do_request(self, request_type, url, payload):
 
@@ -155,8 +156,8 @@ class GigasetelementsClientAPI(object):
         if not cached:
             self._cloud = self._do_request("GET", self._cloud_url, "")
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
-            self._motion_data = self._do_request(
-                "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_motion, "",
+            self._event_data = self._do_request(
+                "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_event, "",
             )
 
         if cached:
@@ -201,7 +202,9 @@ class GigasetelementsClientAPI(object):
 
         sensor_id_list = []
 
-        if sensor_type == "camera":
+        if sensor_type == "base":
+            sensor_id_list.append(self._property_id.lower())
+        elif sensor_type == "camera":
             try:
                 for item in self._camera_data.json():
                     sensor_id_list.append(item["id"].lower())
@@ -218,26 +221,44 @@ class GigasetelementsClientAPI(object):
 
         return sensor_id_list
 
+    def get_sensor_attributes(self, item=None):
+
+        sensor_attributes = {}
+
+        if item is not None:
+            sensor_attributes["custom_name"] = item.get("friendlyName", "unknown")
+            sensor_attributes["connection_status"] = item.get("connectionStatus", "unknown")
+            sensor_attributes["firmware_status"] = item.get("firmwareStatus", "unknown")
+            if not item["type"].rsplit(".", 1)[1] in DEVICE_NO_BATTERY:
+                sensor_attributes["battery_status"] = item.get("batteryStatus", "unknown")
+        else:
+            sensor_attributes["custom_name"] = self._basestation_data.json()[0]["friendly_name"]
+            sensor_attributes["connection_status"] = self._basestation_data.json()[0]["status"]
+            sensor_attributes["firmware_status"] = self._basestation_data.json()[0][
+                "firmware_status"
+            ]
+
+        return sensor_attributes
+
     def get_sensor_state(self, sensor_id, sensor_attribute):
 
         sensor_state = False
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
             if item["id"] == self._property_id + "." + sensor_id:
-                if item[sensor_attribute] == "closed":
+                if item[sensor_attribute] in ["tilted", "open", "online"]:
+                    sensor_state = True
+                elif item[sensor_attribute] == "closed":
                     sensor_state = False
-                elif item[sensor_attribute] == "tilted":
-                    sensor_state = True
-                elif item[sensor_attribute] == "open":
-                    sensor_state = True
                 elif not item[sensor_attribute]:
                     sensor_state = False
                 elif item[sensor_attribute]:
                     sensor_state = True
+                sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
-        return sensor_state
+        return sensor_state, sensor_attributes
 
     def get_plug_state(self, sensor_id):
 
@@ -251,10 +272,24 @@ class GigasetelementsClientAPI(object):
                     plug_state = STATE_ON
                 else:
                     plug_state = STATE_UNKNOWN
+                sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
 
-        return plug_state
+        return plug_state, sensor_attributes
+
+    def get_thermostat_state(self, sensor_id):
+
+        thermostat_state = STATE_UNKNOWN
+
+        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+            if item["id"] == self._property_id + "." + sensor_id:
+                thermostat_state = str(round(float(item["states"]["temperature"]), 1))
+                sensor_attributes = self.get_sensor_attributes(item)
+
+        _LOGGER.debug("Thermostat %s state: %s", sensor_id, thermostat_state)
+
+        return thermostat_state, sensor_attributes
 
     def get_alarm_health(self):
 
@@ -270,10 +305,12 @@ class GigasetelementsClientAPI(object):
                 _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
         else:
             self._health = STATE_UNKNOWN
+        sensor_attributes = self.get_sensor_attributes()
+        sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
 
         _LOGGER.debug("Health state: %s", self._health)
 
-        return self._health
+        return self._health, sensor_attributes
 
     def set_alarm_status(self, action):
 
@@ -318,26 +355,25 @@ class GigasetelementsClientAPI(object):
 
         return
 
-    def get_motion_detected(self, sensor_id):
+    def get_event_detected(self, sensor_id):
 
         sensor_state = False
+        sensor_attributes = {}
 
-        for item in reversed(self._motion_data.json()["events"]):
-            if item["type"] == "yc01.motion" and item["source_id"].lower() == sensor_id:
-                self._last_motion = str(int(item["ts"]) + 1)
+        for item in reversed(self._event_data.json()["events"]):
+            if item["type"] in DEVICE_TRIGGERS and item["source_id"].lower() == sensor_id:
+                self._last_event = str(int(item["ts"]) + 1)
                 sensor_state = True
-            elif item["type"] == "movement" and item["o"]["id"] == sensor_id:
-                self._last_motion = str(int(item["ts"]) + 1)
+            elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
+                self._last_event = str(int(item["ts"]) + 1)
                 sensor_state = True
-            else:
-                continue
+        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+            if item["id"] == self._property_id + "." + sensor_id:
+                sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
-        return sensor_state
-
-    def get_cloud_state(self):
-        return not self._cloud.json()["isMaintenance"]
+        return sensor_state, sensor_attributes
 
     @property
     def target_state(self):

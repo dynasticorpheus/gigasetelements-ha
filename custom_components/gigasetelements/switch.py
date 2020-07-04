@@ -20,6 +20,7 @@ from homeassistant.const import (
 )
 
 from .const import (
+    DEVICE_CLASS_MAP,
     STATE_UPDATE_INTERVAL,
     SWITCH_TYPE,
 )
@@ -51,21 +52,12 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._name = name
         self._id = name.rsplit("_", 1)[1]
         self._type_name = name.rsplit("_", 2)[1]
-        self._icon = "mdi:power-plug-off"
         self._state = STATE_OFF
         self._client = client
+        self._sensor_attributes = {}
         self.update()
 
         _LOGGER.debug("Initialized %s switch: %s", self._type_name, self._name)
-
-    def _set_icon(self):
-
-        if self._state == STATE_ON:
-            self._icon = "mdi:power-plug"
-        elif self._state == STATE_OFF:
-            self._icon = "mdi:power-plug-off"
-        else:
-            self._icon = "mdi:cloud-question"
 
     def turn_on(self, **kwargs):
 
@@ -79,10 +71,9 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
         attributes = {}
 
-        self._state = self._client.get_plug_state(sensor_id=self._id)
-        attributes["state"] = self._state
+        self._state, self._sensor_attributes = self._client.get_plug_state(sensor_id=self._id)
+        attributes = self._sensor_attributes
         self._hass.custom_attributes = attributes
-        self._set_icon()
 
     @property
     def is_on(self):
@@ -97,16 +88,8 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         return self._name
 
     @property
-    def icon(self):
-        return self._icon
-
-    @property
-    def mode(self):
-        return self._mode
-
-    @mode.setter
-    def mode(self, m):
-        self._mode = m
+    def device_class(self):
+        return DEVICE_CLASS_MAP[self._type_name]
 
     @property
     def should_poll(self):
