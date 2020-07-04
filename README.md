@@ -1,7 +1,6 @@
 # Gigaset Elements - Custom Component for Home-Assisant
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/dynasticorpheus/gigasetelements-ha.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dynasticorpheus/gigasetelements-ha/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/dynasticorpheus/gigasetelements-ha.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dynasticorpheus/gigasetelements-ha/context:python)
-[![Downloads for latest release](https://img.shields.io/github/downloads/dynasticorpheus/gigasetelements-ha/latest/total.svg)](https://github.com/dynasticorpheus/gigasetelements-ha/releases/latest)
 
 This project is a custom component for [Home-Assistant](https://home-assistant.io) providing [Gigaset Smart Home](https://www.gigaset.com/hq_en/smart-home/) integration.
 
@@ -46,8 +45,8 @@ gigasetelements:
 
 ## Current integrations
 * Alarm Control Panel
-* Binary Sensor (door, window, smoke, motion, camera_motion, universal, cloud)
-* Sensor (state, health)
+* Binary Sensor (door, window, smoke, motion, camera_motion, universal, button, siren)
+* Sensor (base, thermostat)
 * Switch (away, night, custom, plug)
 
 ## Credits
