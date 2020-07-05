@@ -208,8 +208,8 @@ class GigasetelementsClientAPI(object):
             try:
                 for item in self._camera_data.json():
                     sensor_id_list.append(item["id"].lower())
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
         else:
             for sensor_code, sensor_fullname in SENSOR_NAME.items():
                 if sensor_fullname == sensor_type:
@@ -361,12 +361,15 @@ class GigasetelementsClientAPI(object):
         sensor_attributes = {}
 
         for item in reversed(self._event_data.json()["events"]):
-            if item["type"] in DEVICE_TRIGGERS and item["source_id"].lower() == sensor_id:
-                self._last_event = str(int(item["ts"]) + 1)
-                sensor_state = True
-            elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
-                self._last_event = str(int(item["ts"]) + 1)
-                sensor_state = True
+            try:
+                if item["type"] in DEVICE_TRIGGERS and item["source_id"].lower() == sensor_id:
+                    self._last_event = str(int(item["ts"]) + 1)
+                    sensor_state = True
+                elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
+                    self._last_event = str(int(item["ts"]) + 1)
+                    sensor_state = True
+            except (KeyError, ValueError):
+                pass
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
             if item["id"] == self._property_id + "." + sensor_id:
                 sensor_attributes = self.get_sensor_attributes(item)
