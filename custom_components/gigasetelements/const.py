@@ -32,7 +32,7 @@ DEVICE_UOM_MAP = {
     "thermostat": "°C",
 }
 
-DEVICE_TRIGGERS = ["button1", "button2", "button3", "button4", "movement", "on", "yc01.motion"]
+DEVICE_TRIGGERS = ["button1", "button2", "button3", "button4", "movement", "sirenon", "yc01.motion"]
 
 HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
