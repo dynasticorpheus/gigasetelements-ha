@@ -167,16 +167,19 @@ class GigasetelementsClientAPI(object):
 
         self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
 
-        if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
-            self._state = STATE_ALARM_ARMED_AWAY
-        elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "night":
-            self._state = STATE_ALARM_ARMED_NIGHT
-        elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "custom":
-            self._state = STATE_ALARM_ARMED_HOME
-        elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "home":
-            self._state = STATE_ALARM_DISARMED
-        else:
-            self._state = STATE_UNKNOWN
+        try:
+            if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
+                self._state = STATE_ALARM_ARMED_AWAY
+            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "night":
+                self._state = STATE_ALARM_ARMED_NIGHT
+            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "custom":
+                self._state = STATE_ALARM_ARMED_HOME
+            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "home":
+                self._state = STATE_ALARM_DISARMED
+            else:
+                self._state = STATE_UNKNOWN
+        except (KeyError, ValueError):
+            pass
 
         if self._target_state == 0:
             self._target_state = self._state
@@ -242,18 +245,22 @@ class GigasetelementsClientAPI(object):
 
     def get_sensor_state(self, sensor_id, sensor_attribute):
 
+        sensor_attributes = {}
         sensor_state = False
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
-            if item["id"] == self._property_id + "." + sensor_id:
-                if item[sensor_attribute] in ["tilted", "open", "online"]:
-                    sensor_state = True
-                elif item[sensor_attribute] == "closed":
-                    sensor_state = False
-                elif not item[sensor_attribute]:
-                    sensor_state = False
-                elif item[sensor_attribute]:
-                    sensor_state = True
+            try:
+                if item["id"] == self._property_id + "." + sensor_id:
+                    if item[sensor_attribute] in ["tilted", "open", "online"]:
+                        sensor_state = True
+                    elif item[sensor_attribute] == "closed":
+                        sensor_state = False
+                    elif not item[sensor_attribute]:
+                        sensor_state = False
+                    elif item[sensor_attribute]:
+                        sensor_state = True
+            except (KeyError, ValueError):
+                pass
                 sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
@@ -262,16 +269,20 @@ class GigasetelementsClientAPI(object):
 
     def get_plug_state(self, sensor_id):
 
+        sensor_attributes = {}
         plug_state = STATE_UNKNOWN
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
-            if item["id"] == self._property_id + "." + sensor_id:
-                if item["states"]["relay"] == "off":
-                    plug_state = STATE_OFF
-                elif item["states"]["relay"] == "on":
-                    plug_state = STATE_ON
-                else:
-                    plug_state = STATE_UNKNOWN
+            try:
+                if item["id"] == self._property_id + "." + sensor_id:
+                    if item["states"]["relay"] == "off":
+                        plug_state = STATE_OFF
+                    elif item["states"]["relay"] == "on":
+                        plug_state = STATE_ON
+                    else:
+                        plug_state = STATE_UNKNOWN
+            except (KeyError, ValueError):
+                pass
                 sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
@@ -280,11 +291,15 @@ class GigasetelementsClientAPI(object):
 
     def get_thermostat_state(self, sensor_id):
 
+        sensor_attributes = {}
         thermostat_state = STATE_UNKNOWN
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
-            if item["id"] == self._property_id + "." + sensor_id:
-                thermostat_state = str(round(float(item["states"]["temperature"]), 1))
+            try:
+                if item["id"] == self._property_id + "." + sensor_id:
+                    thermostat_state = str(round(float(item["states"]["temperature"]), 1))
+            except (KeyError, ValueError):
+                pass
                 sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Thermostat %s state: %s", sensor_id, thermostat_state)
@@ -293,18 +308,23 @@ class GigasetelementsClientAPI(object):
 
     def get_alarm_health(self):
 
+        sensor_attributes = {}
+
         result = self._do_request("GET", self._base_url + "/v2/me/health", "")
-        if result.json()["system_health"] == "green":
-            self._health = STATE_HEALTH_GREEN
-        elif result.json()["system_health"] == "orange":
-            self._health = STATE_HEALTH_ORANGE
-        elif result.json()["system_health"] == "red":
-            self._health = STATE_HEALTH_RED
-            if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
-                self._state = STATE_ALARM_TRIGGERED
-                _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
-        else:
-            self._health = STATE_UNKNOWN
+        try:
+            if result.json()["system_health"] == "green":
+                self._health = STATE_HEALTH_GREEN
+            elif result.json()["system_health"] == "orange":
+                self._health = STATE_HEALTH_ORANGE
+            elif result.json()["system_health"] == "red":
+                self._health = STATE_HEALTH_RED
+                if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
+                    self._state = STATE_ALARM_TRIGGERED
+                    _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
+            else:
+                self._health = STATE_UNKNOWN
+        except (KeyError, ValueError):
+            pass
         sensor_attributes = self.get_sensor_attributes()
         sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
 
