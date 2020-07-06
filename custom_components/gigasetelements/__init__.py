@@ -327,6 +327,7 @@ class GigasetelementsClientAPI(object):
             pass
         sensor_attributes = self.get_sensor_attributes()
         sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
+        sensor_attributes["alarm_mode"] = self._state
 
         _LOGGER.debug("Health state: %s", self._health)
 

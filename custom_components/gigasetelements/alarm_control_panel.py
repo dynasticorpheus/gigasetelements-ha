@@ -6,8 +6,6 @@ import logging
 
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 
-import time
-
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
