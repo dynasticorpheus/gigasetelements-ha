@@ -1,8 +1,15 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
+from urllib.parse import urlparse
+import json
 import logging
+import time
+
+import requests
 import voluptuous as vol
+
+from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 
 from homeassistant.const import STATE_OFF, STATE_ON, CONF_SWITCHES
@@ -13,12 +20,6 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_SCAN_INTERVAL,
 )
-from homeassistant.helpers import discovery
-
-from urllib.parse import urlparse
-import json
-import requests
-import time
 
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
@@ -82,7 +83,7 @@ def setup(hass, config):
     return True
 
 
-class GigasetelementsClientAPI(object):
+class GigasetelementsClientAPI:
     def __init__(self, username, password):
 
         self._session = requests.Session()
@@ -154,6 +155,7 @@ class GigasetelementsClientAPI(object):
                 self._last_authenticated = self._do_authorisation()
 
         if not cached:
+            self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
             self._cloud = self._do_request("GET", self._cloud_url, "")
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
             self._event_data = self._do_request(
@@ -178,8 +180,8 @@ class GigasetelementsClientAPI(object):
                 self._state = STATE_ALARM_DISARMED
             else:
                 self._state = STATE_UNKNOWN
-        except (KeyError, ValueError):
-            pass
+        except (KeyError, ValueError) as err:
+            _LOGGER.debug(err)
 
         if self._target_state == 0:
             self._target_state = self._state
@@ -211,8 +213,8 @@ class GigasetelementsClientAPI(object):
             try:
                 for item in self._camera_data.json():
                     sensor_id_list.append(item["id"].lower())
-            except (KeyError, ValueError):
-                pass
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
         else:
             for sensor_code, sensor_fullname in SENSOR_NAME.items():
                 if sensor_fullname == sensor_type:
@@ -232,7 +234,7 @@ class GigasetelementsClientAPI(object):
             sensor_attributes["custom_name"] = item.get("friendlyName", "unknown")
             sensor_attributes["connection_status"] = item.get("connectionStatus", "unknown")
             sensor_attributes["firmware_status"] = item.get("firmwareStatus", "unknown")
-            if not item["type"].rsplit(".", 1)[1] in DEVICE_NO_BATTERY:
+            if not item.get("type", "yc01.yc01").rsplit(".", 1)[1] in DEVICE_NO_BATTERY:
                 sensor_attributes["battery_status"] = item.get("batteryStatus", "unknown")
         else:
             sensor_attributes["custom_name"] = self._basestation_data.json()[0]["friendly_name"]
@@ -259,9 +261,9 @@ class GigasetelementsClientAPI(object):
                         sensor_state = False
                     elif item[sensor_attribute]:
                         sensor_state = True
-            except (KeyError, ValueError):
-                pass
-                sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item)
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
@@ -281,9 +283,9 @@ class GigasetelementsClientAPI(object):
                         plug_state = STATE_ON
                     else:
                         plug_state = STATE_UNKNOWN
-            except (KeyError, ValueError):
-                pass
-                sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item)
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
 
         _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
 
@@ -298,9 +300,9 @@ class GigasetelementsClientAPI(object):
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     thermostat_state = str(round(float(item["states"]["temperature"]), 1))
-            except (KeyError, ValueError):
-                pass
-                sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item)
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
 
         _LOGGER.debug("Thermostat %s state: %s", sensor_id, thermostat_state)
 
@@ -323,8 +325,8 @@ class GigasetelementsClientAPI(object):
                     _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
             else:
                 self._health = STATE_UNKNOWN
-        except (KeyError, ValueError):
-            pass
+        except (KeyError, ValueError) as err:
+            _LOGGER.debug(err)
         sensor_attributes = self.get_sensor_attributes()
         sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
         sensor_attributes["alarm_mode"] = self._state
@@ -355,11 +357,9 @@ class GigasetelementsClientAPI(object):
             "POST", self._base_url + "/v1/me/basestations/" + self._property_id, payload
         )
 
-        return
+    def set_plug_status(self, sensor_id, action):
 
-    def set_plug_status(self, id, action):
-
-        _LOGGER.debug("Set plug %s: %s", id, action)
+        _LOGGER.debug("Set plug %s: %s", sensor_id, action)
 
         switch = {"name": action}
         payload = json.dumps(switch)
@@ -369,12 +369,10 @@ class GigasetelementsClientAPI(object):
             + "/v1/me/basestations/"
             + self._property_id
             + "/endnodes/"
-            + id
+            + sensor_id
             + "/cmd",
             payload,
         )
-
-        return
 
     def get_event_detected(self, sensor_id):
 
@@ -389,11 +387,17 @@ class GigasetelementsClientAPI(object):
                 elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
                     self._last_event = str(int(item["ts"]) + 1)
                     sensor_state = True
-            except (KeyError, ValueError):
-                pass
-        for item in self._elements_data.json()["bs01"][0]["subelements"]:
-            if item["id"] == self._property_id + "." + sensor_id:
-                sensor_attributes = self.get_sensor_attributes(item)
+            except (KeyError, ValueError) as err:
+                _LOGGER.debug(err)
+
+        if len(sensor_id) == 12:
+            for item in self._elements_data.json()["yc01"]:
+                if item["id"] == sensor_id.upper():
+                    sensor_attributes = self.get_sensor_attributes(item)
+        else:
+            for item in self._elements_data.json()["bs01"][0]["subelements"]:
+                if item["id"] == self._property_id + "." + sensor_id:
+                    sensor_attributes = self.get_sensor_attributes(item)
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 

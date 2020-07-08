@@ -25,36 +25,36 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = hass.data[DOMAIN]["name"]
 
     door_sensor_list = client.get_sensor_list("door_sensor")
-    for id in door_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_door_" + id, client)])
+    for sensor_id in door_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_door_" + sensor_id, client)])
 
     window_sensor_list = client.get_sensor_list("window_sensor")
-    for id in window_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_window_" + id, client)])
+    for sensor_id in window_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_window_" + sensor_id, client)])
 
     universal_sensor_list = client.get_sensor_list("universal")
-    for id in universal_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_universal_" + id, client)])
+    for sensor_id in universal_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_universal_" + sensor_id, client)])
 
     smoke_sensor_list = client.get_sensor_list("smoke")
-    for id in smoke_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_smoke_" + id, client)])
+    for sensor_id in smoke_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_smoke_" + sensor_id, client)])
 
     motion_sensor_list = client.get_sensor_list("presence_sensor")
-    for id in motion_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_motion_" + id, client)])
+    for sensor_id in motion_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
 
     camera_sensor_list = client.get_sensor_list("camera")
-    for id in camera_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_motion_" + id, client)])
+    for sensor_id in camera_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
 
     siren_sensor_list = client.get_sensor_list("indoor_siren")
-    for id in siren_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_siren_" + id, client)])
+    for sensor_id in siren_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_siren_" + sensor_id, client)])
 
     button_sensor_list = client.get_sensor_list("button")
-    for id in button_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_button_" + id, client)])
+    for sensor_id in button_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_button_" + sensor_id, client)])
 
 
 class GigasetelementsSensor(BinarySensorEntity):
@@ -62,6 +62,7 @@ class GigasetelementsSensor(BinarySensorEntity):
 
         self._name = name
         self._id = name.rsplit("_", 1)[1]
+        self._icon = None
         self._type_name = name.rsplit("_", 2)[1]
         self._sensor_state = False
         self._sensor_attributes = {}

@@ -35,7 +35,7 @@ DEVICE_UOM_MAP = {
 DEVICE_TRIGGERS = ["button1", "button2", "button3", "button4", "movement", "sirenon", "yc01.motion"]
 
 HEADER_GSE = {
-    "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.60 Mobile Safari/537.36",
+    "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
     "content-type": "application/json; charset=UTF-8",
 }
 

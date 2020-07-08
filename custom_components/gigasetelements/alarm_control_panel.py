@@ -39,7 +39,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 
 class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
-    def __init__(self, name, client, mode=STATE_ALARM_ARMED_AWAY):
+    def __init__(self, name, client):
         self._name = name
         self._state = STATE_ALARM_DISARMED
         self._client = client

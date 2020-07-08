@@ -3,10 +3,9 @@ Gigaset Elements platform that offers a control over alarm status.
 """
 from datetime import timedelta
 import logging
+import time
 
 from homeassistant.components.switch import SwitchEntity
-
-import time
 
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
@@ -41,12 +40,12 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
 
     smart_plug_list = client.get_sensor_list("smart_plug")
-    for id in smart_plug_list:
-        add_devices([GigasetelementsPlugSwitch(hass, name + "_plug_" + id, client, STATE_OFF)])
+    for sensor_id in smart_plug_list:
+        add_devices([GigasetelementsPlugSwitch(hass, name + "_plug_" + sensor_id, client)])
 
 
 class GigasetelementsPlugSwitch(SwitchEntity):
-    def __init__(self, hass, name, client, mode=STATE_ON):
+    def __init__(self, hass, name, client):
 
         self._hass = hass
         self._name = name
@@ -61,11 +60,11 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
     def turn_on(self, **kwargs):
 
-        self._client.set_plug_status(id=self._id, action=STATE_ON)
+        self._client.set_plug_status(sensor_id=self._id, action=STATE_ON)
 
     def turn_off(self, **kwargs):
 
-        self._client.set_plug_status(id=self._id, action=STATE_OFF)
+        self._client.set_plug_status(sensor_id=self._id, action=STATE_OFF)
 
     def update(self):
 
@@ -172,8 +171,8 @@ class GigasetelementsSwitch(SwitchEntity):
         return self._mode
 
     @mode.setter
-    def mode(self, m):
-        self._mode = m
+    def mode(self, set_mode):
+        self._mode = set_mode
 
     @property
     def should_poll(self):

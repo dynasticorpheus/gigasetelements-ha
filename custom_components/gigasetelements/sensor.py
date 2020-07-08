@@ -26,12 +26,12 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = hass.data[DOMAIN]["name"]
 
     base_sensor_list = client.get_sensor_list("base")
-    for id in base_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_base_" + id, client)])
+    for sensor_id in base_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_base_" + sensor_id, client)])
 
     thermostat_sensor_list = client.get_sensor_list("thermostat")
-    for id in thermostat_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_thermostat_" + id, client)])
+    for sensor_id in thermostat_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_thermostat_" + sensor_id, client)])
 
 
 class GigasetelementsSensor(Entity):
@@ -39,6 +39,7 @@ class GigasetelementsSensor(Entity):
 
         self._name = name
         self._id = name.rsplit("_", 1)[1]
+        self._icon = None
         self._type_name = name.rsplit("_", 2)[1]
         self._sensor_state = ""
         self._sensor_attributes = {}
