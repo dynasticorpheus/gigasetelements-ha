@@ -53,6 +53,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._state = STATE_OFF
         self._client = client
+        self._property_id = self._client._property_id
         self._sensor_attributes = {}
         self.update()
 
@@ -85,6 +86,10 @@ class GigasetelementsPlugSwitch(SwitchEntity):
     @property
     def name(self):
         return self._name
+
+    @property
+    def unique_id(self):
+        return "%s.%s" % (self._property_id.lower(), self._id)
 
     @property
     def device_class(self):
