@@ -180,8 +180,8 @@ class GigasetelementsClientAPI:
                 self._state = STATE_ALARM_DISARMED
             else:
                 self._state = STATE_UNKNOWN
-        except (KeyError, ValueError) as err:
-            _LOGGER.debug(err)
+        except (KeyError, ValueError):
+            pass
 
         if self._target_state == 0:
             self._target_state = self._state
@@ -213,8 +213,8 @@ class GigasetelementsClientAPI:
             try:
                 for item in self._camera_data.json():
                     sensor_id_list.append(item["id"].lower())
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
         else:
             for sensor_code, sensor_fullname in SENSOR_NAME.items():
                 if sensor_fullname == sensor_type:
@@ -262,8 +262,8 @@ class GigasetelementsClientAPI:
                     elif item[sensor_attribute]:
                         sensor_state = True
                     sensor_attributes = self.get_sensor_attributes(item)
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
@@ -284,8 +284,8 @@ class GigasetelementsClientAPI:
                     else:
                         plug_state = STATE_UNKNOWN
                     sensor_attributes = self.get_sensor_attributes(item)
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
 
         _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
 
@@ -301,8 +301,8 @@ class GigasetelementsClientAPI:
                 if item["id"] == self._property_id + "." + sensor_id:
                     thermostat_state = str(round(float(item["states"]["temperature"]), 1))
                     sensor_attributes = self.get_sensor_attributes(item)
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
 
         _LOGGER.debug("Thermostat %s state: %s", sensor_id, thermostat_state)
 
@@ -325,8 +325,8 @@ class GigasetelementsClientAPI:
                     _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
             else:
                 self._health = STATE_UNKNOWN
-        except (KeyError, ValueError) as err:
-            _LOGGER.debug(err)
+        except (KeyError, ValueError):
+            pass
         sensor_attributes = self.get_sensor_attributes()
         sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
         sensor_attributes["alarm_mode"] = self._state
@@ -387,8 +387,8 @@ class GigasetelementsClientAPI:
                 elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
                     self._last_event = str(int(item["ts"]) + 1)
                     sensor_state = True
-            except (KeyError, ValueError) as err:
-                _LOGGER.debug(err)
+            except (KeyError, ValueError):
+                pass
 
         if len(sensor_id) == 12:
             for item in self._elements_data.json()["yc01"]:
