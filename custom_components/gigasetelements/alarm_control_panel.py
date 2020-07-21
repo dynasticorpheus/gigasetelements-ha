@@ -43,7 +43,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._name = name
         self._state = STATE_ALARM_DISARMED
         self._client = client
-
+        self._property_id = self._client._property_id
         self.update()
 
         _LOGGER.debug("Initialized alarm control panel: %s", self._name)
@@ -82,6 +82,10 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
     @property
     def name(self):
         return self._name
+
+    @property
+    def unique_id(self):
+        return "%s" % (self._property_id.lower())
 
     @property
     def code_format(self):
