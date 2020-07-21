@@ -9,3 +9,5 @@ gigasetelements:
     username: !secret gigasetelements_username
     # Password - your password to Gigaset Elements
     password: !secret gigasetelements_password
+    # Switches - create switches for armed_away, armed_home and armed_night
+    switches: True

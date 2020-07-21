@@ -12,16 +12,13 @@ import voluptuous as vol
 from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.const import STATE_OFF, STATE_ON, CONF_SWITCHES
 from homeassistant.const import (
     CONF_USERNAME,
     CONF_PASSWORD,
     CONF_RESOURCES,
     CONF_NAME,
     CONF_SCAN_INTERVAL,
-)
-
-from homeassistant.const import (
+    CONF_SWITCHES,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
@@ -29,8 +26,8 @@ from homeassistant.const import (
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
     STATE_UNKNOWN,
-    STATE_ON,
     STATE_OFF,
+    STATE_ON,
 )
 
 from .const import (
@@ -59,6 +56,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
                 vol.Optional(CONF_NAME, default="gigaset_elements"): cv.string,
+                vol.Optional(CONF_SWITCHES, default=True): cv.boolean,
             }
         ),
     },
@@ -70,6 +68,7 @@ def setup(hass, config):
 
     username = config[DOMAIN].get(CONF_USERNAME)
     password = config[DOMAIN].get(CONF_PASSWORD)
+    create_switch = config[DOMAIN].get(CONF_SWITCHES)
     name = config[DOMAIN].get(CONF_NAME)
 
     client = GigasetelementsClientAPI(username, password)
@@ -78,7 +77,8 @@ def setup(hass, config):
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
+    if create_switch:
+        hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
 
     return True
 

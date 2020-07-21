@@ -28,12 +28,14 @@ gigasetelements:
   name:
   username:
   password:
+  switches:
 ```
 
 ### Parameters
 * `name`: Name of the sensor (e.g. gigaset_elements).
 * `username`: Gigaset Elements username. [https://app.gigaset-elements.com](https://app.gigaset-elements.com/)   
 * `password`: Gigaset Elements password.
+* `switches`: True or False (Optional)
 
 ### Example
 ```yaml
@@ -41,6 +43,7 @@ gigasetelements:
   name: gigaset_elements
   username: !secret gigasetelements_username
   password: !secret gigasetelements_password
+  switches: True
 ```
 
 ## Current integrations
