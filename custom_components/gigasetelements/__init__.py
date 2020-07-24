@@ -308,7 +308,7 @@ class GigasetelementsClientAPI:
             except (KeyError, ValueError):
                 pass
 
-        _LOGGER.debug("Thermostat %s state: %s", sensor_id, climate_state)
+        _LOGGER.debug("%s %s state: %s", sensor_type.capitalize(), sensor_id, climate_state)
 
         return climate_state, sensor_attributes
 
