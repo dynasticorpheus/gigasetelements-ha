@@ -231,14 +231,14 @@ class GigasetelementsClientAPI:
         sensor_attributes = {}
 
         if item is not None:
-            sensor_attributes["custom_name"] = item.get("friendlyName", "unknown")
-            sensor_attributes["connection_status"] = item.get("connectionStatus", "unknown")
-            sensor_attributes["firmware_status"] = item.get("firmwareStatus", "unknown")
             if not item.get("type", "yc01.yc01").rsplit(".", 1)[1] in DEVICE_NO_BATTERY:
                 sensor_attributes["battery_status"] = item.get("batteryStatus", "unknown")
+            sensor_attributes["connection_status"] = item.get("connectionStatus", "unknown")
+            sensor_attributes["custom_name"] = item.get("friendlyName", "unknown")
+            sensor_attributes["firmware_status"] = item.get("firmwareStatus", "unknown")
         else:
-            sensor_attributes["custom_name"] = self._basestation_data.json()[0]["friendly_name"]
             sensor_attributes["connection_status"] = self._basestation_data.json()[0]["status"]
+            sensor_attributes["custom_name"] = self._basestation_data.json()[0]["friendly_name"]
             sensor_attributes["firmware_status"] = self._basestation_data.json()[0][
                 "firmware_status"
             ]
@@ -291,22 +291,26 @@ class GigasetelementsClientAPI:
 
         return plug_state, sensor_attributes
 
-    def get_thermostat_state(self, sensor_id):
+    def get_climate_state(self, sensor_id, sensor_type):
 
         sensor_attributes = {}
-        thermostat_state = STATE_UNKNOWN
+        climate_state = STATE_UNKNOWN
 
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
-                    thermostat_state = str(round(float(item["states"]["temperature"]), 1))
+                    climate_state = str(round(float(item["states"]["temperature"]), 1))
                     sensor_attributes = self.get_sensor_attributes(item)
+                if sensor_type == "thermostat":
+                    sensor_attributes["setpoint"] = str(int(item["states"]["setPoint"]))
+                elif sensor_type == "climate":
+                    sensor_attributes["humidity"] = str(round(item["states"]["humidity"], 1))
             except (KeyError, ValueError):
                 pass
 
-        _LOGGER.debug("Thermostat %s state: %s", sensor_id, thermostat_state)
+        _LOGGER.debug("Thermostat %s state: %s", sensor_id, climate_state)
 
-        return thermostat_state, sensor_attributes
+        return climate_state, sensor_attributes
 
     def get_alarm_health(self):
 

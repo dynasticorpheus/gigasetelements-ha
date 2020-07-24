@@ -5,6 +5,7 @@ AUTH_GSE_EXPIRE = 14400
 DEVICE_CLASS_MAP = {
     "base": None,
     "button": "motion",
+    "climate": "temperature",
     "door": "door",
     "motion": "motion",
     "plug": "outlet",
@@ -29,6 +30,7 @@ DEVICE_ICON_MAP = {
 DEVICE_NO_BATTERY = ["bs01", "is01", "sp01", "sp02", "yc01"]
 
 DEVICE_UOM_MAP = {
+    "climate": "°C",
     "thermostat": "°C",
 }
 

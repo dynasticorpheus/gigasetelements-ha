@@ -33,6 +33,10 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for sensor_id in thermostat_sensor_list:
         add_devices([GigasetelementsSensor(name + "_thermostat_" + sensor_id, client)])
 
+    climate_sensor_list = client.get_sensor_list("climate_sensor")
+    for sensor_id in climate_sensor_list:
+        add_devices([GigasetelementsSensor(name + "_climate_" + sensor_id, client)])
+
 
 class GigasetelementsSensor(Entity):
     def __init__(self, name, client):
@@ -67,7 +71,7 @@ class GigasetelementsSensor(Entity):
 
     @property
     def unit_of_measurement(self):
-        if self._type_name in ["thermostat"]:
+        if self._type_name in ["thermostat", "climate"]:
             return DEVICE_UOM_MAP[self._type_name]
         else:
             return None
@@ -90,8 +94,8 @@ class GigasetelementsSensor(Entity):
 
         if self._type_name in ["base"]:
             self._sensor_state, self._sensor_attributes = self._client.get_alarm_health()
-        elif self._type_name in ["thermostat"]:
-            self._sensor_state, self._sensor_attributes = self._client.get_thermostat_state(
-                sensor_id=self._id
+        elif self._type_name in ["thermostat", "climate"]:
+            self._sensor_state, self._sensor_attributes = self._client.get_climate_state(
+                sensor_id=self._id, sensor_type=self._type_name
             )
         self._set_icon()
