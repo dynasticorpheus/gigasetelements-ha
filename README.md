@@ -49,7 +49,7 @@ gigasetelements:
 ## Current integrations
 * Alarm Control Panel
 * Binary Sensor (door, window, smoke, motion, camera_motion, universal, button, siren)
-* Sensor (base, thermostat)
+* Sensor (base, climate, thermostat)
 * Switch (away, night, custom, plug)
 
 ## Credits
