@@ -10,6 +10,7 @@ from .const import (
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
     DEVICE_UOM_MAP,
+    SENSOR_NAME,
     STATE_UPDATE_INTERVAL,
 )
 
@@ -25,17 +26,10 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
-    base_sensor_list = client.get_sensor_list("base")
-    for sensor_id in base_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_base_" + sensor_id, client)])
-
-    thermostat_sensor_list = client.get_sensor_list("thermostat")
-    for sensor_id in thermostat_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_thermostat_" + sensor_id, client)])
-
-    climate_sensor_list = client.get_sensor_list("climate_sensor")
-    for sensor_id in climate_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_climate_" + sensor_id, client)])
+    for sensor in set(SENSOR_NAME.values()):
+        list = client.get_sensor_list(sensor, SENSOR_NAME)
+        for sensor_id in list:
+            add_devices([GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)])
 
 
 class GigasetelementsSensor(Entity):

@@ -7,9 +7,10 @@ import logging
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import (
-    STATE_UPDATE_INTERVAL,
+    BINARY_SENSOR_NAME,
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
+    STATE_UPDATE_INTERVAL,
 )
 
 DOMAIN = "gigasetelements"
@@ -24,37 +25,13 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
-    door_sensor_list = client.get_sensor_list("door_sensor")
-    for sensor_id in door_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_door_" + sensor_id, client)])
-
-    window_sensor_list = client.get_sensor_list("window_sensor")
-    for sensor_id in window_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_window_" + sensor_id, client)])
-
-    universal_sensor_list = client.get_sensor_list("universal")
-    for sensor_id in universal_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_universal_" + sensor_id, client)])
-
-    smoke_sensor_list = client.get_sensor_list("smoke")
-    for sensor_id in smoke_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_smoke_" + sensor_id, client)])
-
-    motion_sensor_list = client.get_sensor_list("presence_sensor")
-    for sensor_id in motion_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
-
-    camera_sensor_list = client.get_sensor_list("camera")
-    for sensor_id in camera_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
-
-    siren_sensor_list = client.get_sensor_list("indoor_siren")
-    for sensor_id in siren_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_siren_" + sensor_id, client)])
-
-    button_sensor_list = client.get_sensor_list("button")
-    for sensor_id in button_sensor_list:
-        add_devices([GigasetelementsSensor(name + "_button_" + sensor_id, client)])
+    for sensor in set(BINARY_SENSOR_NAME.values()):
+        list = client.get_sensor_list(sensor, BINARY_SENSOR_NAME)
+        for sensor_id in list:
+            if sensor == "camera":
+                add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
+            else:
+                add_devices([GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)])
 
 
 class GigasetelementsSensor(BinarySensorEntity):

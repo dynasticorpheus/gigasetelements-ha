@@ -21,6 +21,7 @@ from homeassistant.const import (
 from .const import (
     DEVICE_CLASS_MAP,
     STATE_UPDATE_INTERVAL,
+    SWITCH_NAME,
     SWITCH_TYPE,
 )
 
@@ -39,9 +40,12 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for mode in SWITCH_TYPE:
         add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
 
-    smart_plug_list = client.get_sensor_list("smart_plug")
-    for sensor_id in smart_plug_list:
-        add_devices([GigasetelementsPlugSwitch(hass, name + "_plug_" + sensor_id, client)])
+    for switch in set(SWITCH_NAME.values()):
+        list = client.get_sensor_list(switch, SWITCH_NAME)
+        for switch_id in list:
+            add_devices(
+                [GigasetelementsPlugSwitch(hass, name + "_" + switch + "_" + switch_id, client)]
+            )
 
 
 class GigasetelementsPlugSwitch(SwitchEntity):

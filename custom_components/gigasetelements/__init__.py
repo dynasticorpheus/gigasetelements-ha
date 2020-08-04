@@ -39,7 +39,6 @@ from .const import (
     URL_GSE_AUTH,
     URL_GSE_API,
     URL_GSE_CLOUD,
-    SENSOR_NAME,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
@@ -203,7 +202,7 @@ class GigasetelementsClientAPI:
         else:
             return STATE_ALARM_PENDING
 
-    def get_sensor_list(self, sensor_type):
+    def get_sensor_list(self, sensor_type, list):
 
         sensor_id_list = []
 
@@ -216,7 +215,7 @@ class GigasetelementsClientAPI:
             except (KeyError, ValueError):
                 pass
         else:
-            for sensor_code, sensor_fullname in SENSOR_NAME.items():
+            for sensor_code, sensor_fullname in list.items():
                 if sensor_fullname == sensor_type:
                     for item in self._basestation_data.json()[0]["sensors"]:
                         if item["type"] == sensor_code:

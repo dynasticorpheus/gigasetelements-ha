@@ -54,24 +54,28 @@ STATE_HEALTH_ORANGE = "Orange"
 STATE_HEALTH_RED = "Red"
 
 SENSOR_NAME = {
-    "ws02": "window_sensor",
-    "ps01": "presence_sensor",
-    "ps02": "presence_sensor",
-    "ds01": "door_sensor",
-    "ds02": "door_sensor",
-    "is01": "indoor_siren",
-    "sp01": "smart_plug",
-    "sp02": "smart_plug",
+    "bs01": "base",
+    "cl01": "climate",
+    "ts01": "thermostat",
+}
+
+BINARY_SENSOR_NAME = {
+    "ws02": "window",
+    "ps01": "motion",
+    "ps02": "motion",
+    "ds01": "door",
+    "ds02": "door",
+    "is01": "siren",
     "bn01": "button",
     "yc01": "camera",
     "sd01": "smoke",
     "um01": "universal",
-    "hb01": "hue_bridge",
-    "hb01.hl01": "hue_light",
-    "bs01": "base_station",
-    "wd01": "water_sensor",
-    "cl01": "climate_sensor",
-    "ts01": "thermostat",
+    "wd01": "water",
+}
+
+SWITCH_NAME = {
+    "sp01": "plug",
+    "sp02": "plug",
 }
 
 SWITCH_TYPE = {
