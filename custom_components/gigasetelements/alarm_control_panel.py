@@ -3,8 +3,13 @@ Gigaset Elements platform that offers a control over alarm status.
 """
 from datetime import timedelta
 import logging
+import re
 
-from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
+from homeassistant.components.alarm_control_panel import (
+    AlarmControlPanelEntity,
+    FORMAT_NUMBER,
+    FORMAT_TEXT,
+)
 
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
@@ -44,6 +49,8 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._state = STATE_ALARM_DISARMED
         self._client = client
         self._property_id = self._client._property_id
+        self._code = self._client._code
+        self._code_arm_required = self._client._code_arm_required
         self.update()
 
         _LOGGER.debug("Initialized alarm control panel: %s", self._name)
@@ -52,32 +59,9 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
     def supported_features(self) -> int:
         return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
 
-    def update(self):
-        self._state = self._client.get_alarm_status()
-
     @property
     def state(self):
         return self._state
-
-    def alarm_arm_home(self, code=None):
-
-        self._client.set_alarm_status(STATE_ALARM_ARMED_HOME)
-        self._state = STATE_ALARM_PENDING
-
-    def alarm_disarm(self, code=None):
-
-        self._client.set_alarm_status(STATE_ALARM_DISARMED)
-        self._state = STATE_ALARM_PENDING
-
-    def alarm_arm_away(self, code=None):
-
-        self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
-        self._state = STATE_ALARM_PENDING
-
-    def alarm_arm_night(self, code=None):
-
-        self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)
-        self._state = STATE_ALARM_PENDING
 
     @property
     def name(self):
@@ -89,4 +73,58 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
     @property
     def code_format(self):
-        return None
+        if self._code is None:
+            return None
+        if isinstance(self._code, str) and re.search("^\\d+$", self._code):
+            return FORMAT_NUMBER
+        return FORMAT_TEXT
+
+    @property
+    def code_arm_required(self):
+        return self._code_arm_required
+
+    def update(self):
+        self._state = self._client.get_alarm_status()
+
+    def alarm_disarm(self, code=None):
+        if not self._validate_code(code, STATE_ALARM_DISARMED):
+            return
+
+        self._client.set_alarm_status(STATE_ALARM_DISARMED)
+        self._state = STATE_ALARM_DISARMED
+
+    def alarm_arm_home(self, code=None):
+
+        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_HOME):
+            return
+
+        self._client.set_alarm_status(STATE_ALARM_ARMED_HOME)
+        self._state = STATE_ALARM_PENDING
+
+    def alarm_arm_away(self, code=None):
+
+        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_AWAY):
+            return
+
+        self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
+        self._state = STATE_ALARM_PENDING
+
+    def alarm_arm_night(self, code=None):
+
+        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_NIGHT):
+            return
+
+        self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)
+        self._state = STATE_ALARM_PENDING
+
+    def _validate_code(self, code, state):
+        if self._code is None:
+            return True
+        if isinstance(self._code, str):
+            alarm_code = self._code
+        else:
+            alarm_code = self._code.render(from_state=self._state, to_state=state)
+        check = not alarm_code or code == alarm_code
+        if not check:
+            _LOGGER.warning("Invalid code given for %s", state)
+        return check

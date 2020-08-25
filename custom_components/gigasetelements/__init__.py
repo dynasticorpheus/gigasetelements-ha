@@ -13,6 +13,7 @@ from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 
 from homeassistant.const import (
+    CONF_CODE,
     CONF_USERNAME,
     CONF_PASSWORD,
     CONF_RESOURCES,
@@ -46,6 +47,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+CONF_CODE_ARM_REQUIRED = "code_arm_required"
+
 DOMAIN = "gigasetelements"
 
 CONFIG_SCHEMA = vol.Schema(
@@ -56,6 +59,8 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(CONF_PASSWORD): cv.string,
                 vol.Optional(CONF_NAME, default="gigaset_elements"): cv.string,
                 vol.Optional(CONF_SWITCHES, default=True): cv.boolean,
+                vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
+                vol.Optional(CONF_CODE, "code validation"): cv.string,
             }
         ),
     },
@@ -67,10 +72,12 @@ def setup(hass, config):
 
     username = config[DOMAIN].get(CONF_USERNAME)
     password = config[DOMAIN].get(CONF_PASSWORD)
+    code = config[DOMAIN].get(CONF_CODE)
+    code_arm_required = config[DOMAIN].get(CONF_CODE_ARM_REQUIRED)
     create_switch = config[DOMAIN].get(CONF_SWITCHES)
     name = config[DOMAIN].get(CONF_NAME)
 
-    client = GigasetelementsClientAPI(username, password)
+    client = GigasetelementsClientAPI(username, password, code, code_arm_required)
 
     hass.data[DOMAIN] = {"client": client, "name": name}
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
@@ -83,7 +90,7 @@ def setup(hass, config):
 
 
 class GigasetelementsClientAPI:
-    def __init__(self, username, password):
+    def __init__(self, username, password, code, code_arm_required):
 
         self._session = requests.Session()
         self._auth_url = URL_GSE_AUTH
@@ -92,6 +99,8 @@ class GigasetelementsClientAPI:
         self._headers = HEADER_GSE
         self._username = username
         self._password = password
+        self._code = code
+        self._code_arm_required = code_arm_required
         self._last_updated = 0
         self._pending_time = 0
         self._target_state = 0

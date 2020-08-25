@@ -29,6 +29,8 @@ gigasetelements:
   username:
   password:
   switches:
+  code:
+  code_arm_required:
 ```
 
 ### Parameters
@@ -36,6 +38,8 @@ gigasetelements:
 * `username`: Gigaset Elements username. [https://app.gigaset-elements.com](https://app.gigaset-elements.com/)   
 * `password`: Gigaset Elements password.
 * `switches`: True or False (Optional)
+* `code`: Code to enable or disable the alarm in the frontend. (Optional)
+* `code_arm_required`: True or False (Optional)
 
 ### Example
 ```yaml
@@ -44,10 +48,12 @@ gigasetelements:
   username: !secret gigasetelements_username
   password: !secret gigasetelements_password
   switches: True
+  code: 1234
+  code_arm_required: False
 ```
 
 ## Current integrations
-* Alarm Control Panel
+* Alarm Control Panel (code)
 * Binary Sensor (door, window, smoke, motion, camera_motion, universal, button, siren)
 * Sensor (base, climate, thermostat)
 * Switch (away, night, custom, plug)

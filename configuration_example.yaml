@@ -11,3 +11,7 @@ gigasetelements:
     password: !secret gigasetelements_password
     # Switches - create switches for armed_away, armed_home and armed_night
     switches: True
+    # Code - Code to enable or disable the alarm in the frontend
+    code: 1234
+    # Code_arm_required - require code for armed_away, armed_home and armed_night
+    code_arm_required: True
