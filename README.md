@@ -56,7 +56,7 @@ gigasetelements:
 * Alarm Control Panel (code)
 * Binary Sensor (door, window, smoke, motion, camera_motion, universal, button, siren)
 * Sensor (base, climate, thermostat)
-* Switch (away, night, custom, plug)
+* Switch (away, night, custom, plug, panic)
 
 ## Credits
 Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.

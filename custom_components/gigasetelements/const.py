@@ -34,7 +34,15 @@ DEVICE_UOM_MAP = {
     "thermostat": "°C",
 }
 
-DEVICE_TRIGGERS = ["button1", "button2", "button3", "button4", "movement", "sirenon", "yc01.motion"]
+DEVICE_TRIGGERS = [
+    "button1",
+    "button2",
+    "button3",
+    "button4",
+    "movement",
+    "sirenon",
+    "yc01.motion",
+]
 
 HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
@@ -82,4 +90,5 @@ SWITCH_TYPE = {
     "home_mode": "armed_home",
     "away_mode": "armed_away",
     "night_mode": "armed_night",
+    "panic_mode": "triggered",
 }

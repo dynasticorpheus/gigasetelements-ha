@@ -114,12 +114,15 @@ class GigasetelementsClientAPI:
         self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
         self._last_event = str(int(time.time()) * 1000)
         self._event_data = self._do_request("GET", self._base_url + "/v2/me/events?limit=1", "")
+        self._health_data = self._do_request("GET", self._base_url + "/v2/me/health", "")
         self._property_id = self._set_property_id()
 
     def _do_request(self, request_type, url, payload):
 
         if request_type == "POST":
             response = self._session.post(url, payload, headers=self._headers)
+        elif request_type == "DELETE":
+            response = self._session.delete(url)
         else:
             response = self._session.get(url, headers=self._headers)
 
@@ -324,17 +327,19 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        result = self._do_request("GET", self._base_url + "/v2/me/health", "")
+        self._health_data = self._do_request("GET", self._base_url + "/v2/me/health", "")
         try:
-            if result.json()["system_health"] == "green":
+            if self._health_data.json()["system_health"] == "green":
                 self._health = STATE_HEALTH_GREEN
-            elif result.json()["system_health"] == "orange":
+            elif self._health_data.json()["system_health"] == "orange":
                 self._health = STATE_HEALTH_ORANGE
-            elif result.json()["system_health"] == "red":
+            elif self._health_data.json()["system_health"] == "red":
                 self._health = STATE_HEALTH_RED
-                if result.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
+                if self._health_data.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
                     self._state = STATE_ALARM_TRIGGERED
-                    _LOGGER.debug("Alarm trigger state: %s", result.json()["status_msg_id"])
+                    _LOGGER.debug(
+                        "Alarm trigger state: %s", self._health_data.json()["status_msg_id"]
+                    )
             else:
                 self._health = STATE_UNKNOWN
         except (KeyError, ValueError):
@@ -385,6 +390,31 @@ class GigasetelementsClientAPI:
             + "/cmd",
             payload,
         )
+
+    def set_panic_alarm(self, action):
+
+        _LOGGER.debug("Set panic alarm: %s", action)
+
+        if action == STATE_ON:
+            switch = {"action": "alarm.user.start"}
+            payload = json.dumps(switch)
+            self._do_request("POST", self._base_url + "/v1/me/devices/webfrontend/sink", payload)
+        else:
+            self._do_request("DELETE", self._base_url + "/v1/me/states/userAlarm", "")
+
+    def get_panic_alarm(self):
+
+        try:
+            if self._health_data.json()["status_msg_id"] == "alarm.user":
+                panic_state = STATE_ON
+            else:
+                panic_state = STATE_OFF
+        except (KeyError, ValueError):
+            panic_state = STATE_OFF
+
+        _LOGGER.debug("Panic alarm state: %s", panic_state)
+
+        return panic_state
 
     def get_event_detected(self, sensor_id):
 
