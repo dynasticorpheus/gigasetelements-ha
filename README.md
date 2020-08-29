@@ -63,3 +63,12 @@ Initial release based on the excellent [Securitas](https://github.com/vlumikero/
 
 ## Donation Hall of Fame
 If you like this custom component you might want to consider to [BuyMeABeer? 🍺](https://buymeacoffee.com/dynasticorpheus)
+
+* *Orkun S*
+* *Adrian R*
+* *Joshua T*
+* *Auke C*
+* *RPC B*
+* *Silke H*
+* *Frank M*
+* *Max G*
