@@ -237,24 +237,23 @@ class GigasetelementsClientAPI:
 
         return sensor_id_list
 
-    def get_sensor_attributes(self, item=None):
+    def get_sensor_attributes(self, item={}, attr={}):
 
-        sensor_attributes = {}
+        try:
+            attr["battery_status"] = item.get("batteryStatus", None)
+            attr["connection_status"] = item.get(
+                "connectionStatus", self._basestation_data.json()[0]["status"]
+            )
+            attr["custom_name"] = item.get(
+                "friendlyName", self._basestation_data.json()[0]["friendly_name"]
+            )
+            attr["firmware_status"] = item.get(
+                "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
+            )
+        except (KeyError, ValueError):
+            pass
 
-        if item is not None:
-            if not item.get("type", "yc01.yc01").rsplit(".", 1)[1] in DEVICE_NO_BATTERY:
-                sensor_attributes["battery_status"] = item.get("batteryStatus", "unknown")
-            sensor_attributes["connection_status"] = item.get("connectionStatus", "unknown")
-            sensor_attributes["custom_name"] = item.get("friendlyName", "unknown")
-            sensor_attributes["firmware_status"] = item.get("firmwareStatus", "unknown")
-        else:
-            sensor_attributes["connection_status"] = self._basestation_data.json()[0]["status"]
-            sensor_attributes["custom_name"] = self._basestation_data.json()[0]["friendly_name"]
-            sensor_attributes["firmware_status"] = self._basestation_data.json()[0][
-                "firmware_status"
-            ]
-
-        return sensor_attributes
+        return {k: v for k, v in attr.items() if v is not None}
 
     def get_sensor_state(self, sensor_id, sensor_attribute):
 
@@ -350,7 +349,7 @@ class GigasetelementsClientAPI:
 
         _LOGGER.debug("Health state: %s", self._health)
 
-        return self._health, sensor_attributes
+        return self._health, dict(sorted(sensor_attributes.items()))
 
     def set_alarm_status(self, action):
 
