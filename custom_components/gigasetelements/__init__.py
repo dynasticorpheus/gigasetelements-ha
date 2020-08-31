@@ -241,6 +241,9 @@ class GigasetelementsClientAPI:
 
         try:
             attr["battery_status"] = item.get("batteryStatus", None)
+            attr["battery_low"] = item.get("permanentBatteryLow", None)
+            attr["calibration_status"] = item.get("calibrationStatus", None)
+            attr["chamber_fail"] = item.get("smokeChamberFail", None)
             attr["connection_status"] = item.get(
                 "connectionStatus", self._basestation_data.json()[0]["status"]
             )
@@ -250,6 +253,8 @@ class GigasetelementsClientAPI:
             attr["firmware_status"] = item.get(
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
+            attr["unmounted"] = item.get("unmounted", None)
+            attr["test_required"] = item.get("testRequired", None)
         except (KeyError, ValueError):
             pass
 
@@ -344,7 +349,7 @@ class GigasetelementsClientAPI:
         except (KeyError, ValueError):
             pass
         sensor_attributes = self.get_sensor_attributes()
-        sensor_attributes["maintenance_status"] = self._cloud.json()["isMaintenance"]
+        sensor_attributes["cloud_maintenance"] = self._cloud.json()["isMaintenance"]
         sensor_attributes["alarm_mode"] = self._state
 
         _LOGGER.debug("Health state: %s", self._health)
