@@ -155,13 +155,13 @@ class GigasetelementsClientAPI:
 
         return time.time()
 
-    def get_alarm_status(self, cached=False):
+    def get_alarm_status(self, refresh=True):
 
         if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
-            if not cached:
+            if refresh:
                 self._last_authenticated = self._do_authorisation()
 
-        if not cached:
+        if refresh:
             self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
             self._cloud = self._do_request("GET", self._cloud_url, "")
             self._dashboard_data = self._do_request(
@@ -172,7 +172,7 @@ class GigasetelementsClientAPI:
                 "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_event, "",
             )
 
-        if cached:
+        if not refresh:
             return self._state
         elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
             return self._state

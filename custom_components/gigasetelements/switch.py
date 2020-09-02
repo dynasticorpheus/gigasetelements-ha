@@ -162,7 +162,7 @@ class GigasetelementsSwitch(SwitchEntity):
         if self._type_name == "panic":
             self._state = self._client.get_panic_alarm()
         else:
-            self._state = self._client.get_alarm_status(cached=True)
+            self._state = self._client.get_alarm_status(refresh=False)
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
         self._set_icon()
