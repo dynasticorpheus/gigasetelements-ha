@@ -75,9 +75,10 @@ def setup(hass, config):
     code = config[DOMAIN].get(CONF_CODE)
     code_arm_required = config[DOMAIN].get(CONF_CODE_ARM_REQUIRED)
     create_switch = config[DOMAIN].get(CONF_SWITCHES)
+    time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
 
-    client = GigasetelementsClientAPI(username, password, code, code_arm_required)
+    client = GigasetelementsClientAPI(username, password, code, code_arm_required, time_zone)
 
     hass.data[DOMAIN] = {"client": client, "name": name}
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
@@ -90,7 +91,7 @@ def setup(hass, config):
 
 
 class GigasetelementsClientAPI:
-    def __init__(self, username, password, code, code_arm_required):
+    def __init__(self, username, password, code, code_arm_required, time_zone):
 
         self._session = requests.Session()
         self._auth_url = URL_GSE_AUTH
@@ -99,6 +100,7 @@ class GigasetelementsClientAPI:
         self._headers = HEADER_GSE
         self._username = username
         self._password = password
+        self._time_zone = time_zone
         self._code = code
         self._code_arm_required = code_arm_required
         self._last_updated = 0
@@ -106,16 +108,21 @@ class GigasetelementsClientAPI:
         self._target_state = 0
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
+        self._last_event = str(int(time.time()) * 1000)
         self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
         self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
+        self._property_id = self._basestation_data.json()[0]["id"]
         self._cloud = self._do_request("GET", self._cloud_url, "")
         self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
         self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
-        self._last_event = str(int(time.time()) * 1000)
         self._event_data = self._do_request("GET", self._base_url + "/v2/me/events?limit=1", "")
         self._health_data = self._do_request("GET", self._base_url + "/v2/me/health", "")
-        self._property_id = self._set_property_id()
+        self._dashboard_data = self._do_request(
+            "GET", self._base_url + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
+        )
+
+        _LOGGER.debug("Property id: %s", self._property_id)
 
     def _do_request(self, request_type, url, payload):
 
@@ -148,17 +155,6 @@ class GigasetelementsClientAPI:
 
         return time.time()
 
-    def _set_property_id(self):
-
-        property_id = 0
-
-        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
-        property_id = self._basestation_data.json()[0]["id"]
-
-        _LOGGER.debug("Get property id: %s", property_id)
-
-        return property_id
-
     def get_alarm_status(self, cached=False):
 
         if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
@@ -168,6 +164,9 @@ class GigasetelementsClientAPI:
         if not cached:
             self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
             self._cloud = self._do_request("GET", self._cloud_url, "")
+            self._dashboard_data = self._do_request(
+                "GET", self._base_url + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
+            )
             self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
             self._event_data = self._do_request(
                 "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_event, "",
@@ -346,11 +345,18 @@ class GigasetelementsClientAPI:
                     )
             else:
                 self._health = STATE_UNKNOWN
+
+            sensor_attributes = self.get_sensor_attributes()
+            sensor_attributes["alarm_mode"] = self._state
+            sensor_attributes["cloud_maintenance"] = self._cloud.json()["isMaintenance"]
+            sensor_attributes["today_events"] = self._dashboard_data.json()["result"][
+                "recentEventsNumber"
+            ]
+            sensor_attributes["today_recordings"] = self._dashboard_data.json()["result"][
+                "recentEventCounts"
+            ]["yc01.recording"]
         except (KeyError, ValueError):
             pass
-        sensor_attributes = self.get_sensor_attributes()
-        sensor_attributes["cloud_maintenance"] = self._cloud.json()["isMaintenance"]
-        sensor_attributes["alarm_mode"] = self._state
 
         _LOGGER.debug("Health state: %s", self._health)
 
