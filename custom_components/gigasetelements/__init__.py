@@ -67,6 +67,9 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+session = requests.Session()
+session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
+
 
 def setup(hass, config):
 
@@ -93,7 +96,6 @@ def setup(hass, config):
 class GigasetelementsClientAPI:
     def __init__(self, username, password, code, code_arm_required, time_zone):
 
-        self._session = requests.Session()
         self._username = username
         self._password = password
         self._time_zone = time_zone
@@ -105,7 +107,6 @@ class GigasetelementsClientAPI:
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._last_event = str(int(time.time()) * 1000)
-        self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
         self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations", "")
         self._property_id = self._basestation_data.json()[0]["id"]
@@ -123,11 +124,11 @@ class GigasetelementsClientAPI:
     def _do_request(self, request_type, url, payload):
 
         if request_type == "POST":
-            response = self._session.post(url, payload, headers=HEADER_GSE)
+            response = session.post(url, payload, headers=HEADER_GSE)
         elif request_type == "DELETE":
-            response = self._session.delete(url)
+            response = session.delete(url)
         else:
-            response = self._session.get(url, headers=HEADER_GSE)
+            response = session.get(url, headers=HEADER_GSE)
 
         if response.status_code != requests.codes.ok:
             _LOGGER.debug(
