@@ -94,10 +94,6 @@ class GigasetelementsClientAPI:
     def __init__(self, username, password, code, code_arm_required, time_zone):
 
         self._session = requests.Session()
-        self._auth_url = URL_GSE_AUTH
-        self._base_url = URL_GSE_API
-        self._cloud_url = URL_GSE_CLOUD
-        self._headers = HEADER_GSE
         self._username = username
         self._password = password
         self._time_zone = time_zone
@@ -111,15 +107,15 @@ class GigasetelementsClientAPI:
         self._last_event = str(int(time.time()) * 1000)
         self._session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         self._last_authenticated = self._do_authorisation()
-        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
+        self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations", "")
         self._property_id = self._basestation_data.json()[0]["id"]
-        self._cloud = self._do_request("GET", self._cloud_url, "")
-        self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
-        self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
-        self._event_data = self._do_request("GET", self._base_url + "/v2/me/events?limit=1", "")
-        self._health_data = self._do_request("GET", self._base_url + "/v2/me/health", "")
+        self._cloud = self._do_request("GET", URL_GSE_CLOUD, "")
+        self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras", "")
+        self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements", "")
+        self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1", "")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health", "")
         self._dashboard_data = self._do_request(
-            "GET", self._base_url + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
+            "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
         )
 
         _LOGGER.debug("Property id: %s", self._property_id)
@@ -127,11 +123,11 @@ class GigasetelementsClientAPI:
     def _do_request(self, request_type, url, payload):
 
         if request_type == "POST":
-            response = self._session.post(url, payload, headers=self._headers)
+            response = self._session.post(url, payload, headers=HEADER_GSE)
         elif request_type == "DELETE":
             response = self._session.delete(url)
         else:
-            response = self._session.get(url, headers=self._headers)
+            response = self._session.get(url, headers=HEADER_GSE)
 
         if response.status_code != requests.codes.ok:
             _LOGGER.debug(
@@ -150,8 +146,8 @@ class GigasetelementsClientAPI:
         _LOGGER.debug("Authenticating: %s", self._username)
 
         payload = {"password": self._password, "email": self._username}
-        self._do_request("POST", self._auth_url, payload)
-        self._do_request("GET", self._base_url + "/v1/auth/openid/begin?op=gigaset", "")
+        self._do_request("POST", URL_GSE_AUTH, payload)
+        self._do_request("GET", URL_GSE_API + "/v1/auth/openid/begin?op=gigaset", "")
 
         return time.time()
 
@@ -162,14 +158,14 @@ class GigasetelementsClientAPI:
                 self._last_authenticated = self._do_authorisation()
 
         if refresh:
-            self._camera_data = self._do_request("GET", self._base_url + "/v1/me/cameras", "")
-            self._cloud = self._do_request("GET", self._cloud_url, "")
+            self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras", "")
+            self._cloud = self._do_request("GET", URL_GSE_CLOUD, "")
             self._dashboard_data = self._do_request(
-                "GET", self._base_url + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
+                "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
             )
-            self._elements_data = self._do_request("GET", self._base_url + "/v2/me/elements", "")
+            self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements", "")
             self._event_data = self._do_request(
-                "GET", self._base_url + "/v2/me/events?from_ts=" + self._last_event, "",
+                "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event, "",
             )
 
         if not refresh:
@@ -177,7 +173,7 @@ class GigasetelementsClientAPI:
         elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
             return self._state
 
-        self._basestation_data = self._do_request("GET", self._base_url + "/v1/me/basestations", "")
+        self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations", "")
 
         try:
             if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
@@ -330,7 +326,7 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        self._health_data = self._do_request("GET", self._base_url + "/v2/me/health", "")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health", "")
         try:
             if self._health_data.json()["system_health"] == "green":
                 self._health = STATE_HEALTH_GREEN
@@ -380,9 +376,7 @@ class GigasetelementsClientAPI:
             status_name = "home"
         switch = {"intrusion_settings": {"active_mode": status_name}}
         payload = json.dumps(switch)
-        self._do_request(
-            "POST", self._base_url + "/v1/me/basestations/" + self._property_id, payload
-        )
+        self._do_request("POST", URL_GSE_API + "/v1/me/basestations/" + self._property_id, payload)
 
     def set_plug_status(self, sensor_id, action):
 
@@ -392,7 +386,7 @@ class GigasetelementsClientAPI:
         payload = json.dumps(switch)
         self._do_request(
             "POST",
-            self._base_url
+            URL_GSE_API
             + "/v1/me/basestations/"
             + self._property_id
             + "/endnodes/"
@@ -408,9 +402,9 @@ class GigasetelementsClientAPI:
         if action == STATE_ON:
             switch = {"action": "alarm.user.start"}
             payload = json.dumps(switch)
-            self._do_request("POST", self._base_url + "/v1/me/devices/webfrontend/sink", payload)
+            self._do_request("POST", URL_GSE_API + "/v1/me/devices/webfrontend/sink", payload)
         else:
-            self._do_request("DELETE", self._base_url + "/v1/me/states/userAlarm", "")
+            self._do_request("DELETE", URL_GSE_API + "/v1/me/states/userAlarm", "")
 
     def get_panic_alarm(self):
 
