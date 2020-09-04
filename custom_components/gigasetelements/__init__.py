@@ -108,20 +108,20 @@ class GigasetelementsClientAPI:
         self._health = STATE_HEALTH_GREEN
         self._last_event = str(int(time.time()) * 1000)
         self._last_authenticated = self._do_authorisation()
-        self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations", "")
+        self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
         self._property_id = self._basestation_data.json()[0]["id"]
-        self._cloud = self._do_request("GET", URL_GSE_CLOUD, "")
-        self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras", "")
-        self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements", "")
-        self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1", "")
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health", "")
+        self._cloud = self._do_request("GET", URL_GSE_CLOUD)
+        self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
+        self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
+        self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health")
         self._dashboard_data = self._do_request(
-            "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
+            "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
         )
 
         _LOGGER.debug("Property id: %s", self._property_id)
 
-    def _do_request(self, request_type, url, payload):
+    def _do_request(self, request_type, url, payload=""):
 
         if request_type == "POST":
             response = session.post(url, payload, headers=HEADER_GSE)
@@ -148,33 +148,29 @@ class GigasetelementsClientAPI:
 
         payload = {"password": self._password, "email": self._username}
         self._do_request("POST", URL_GSE_AUTH, payload)
-        self._do_request("GET", URL_GSE_API + "/v1/auth/openid/begin?op=gigaset", "")
+        self._do_request("GET", URL_GSE_API + "/v1/auth/openid/begin?op=gigaset")
 
         return time.time()
 
     def get_alarm_status(self, refresh=True):
 
-        if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
-            if refresh:
-                self._last_authenticated = self._do_authorisation()
-
-        if refresh:
-            self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras", "")
-            self._cloud = self._do_request("GET", URL_GSE_CLOUD, "")
-            self._dashboard_data = self._do_request(
-                "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone, ""
-            )
-            self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements", "")
-            self._event_data = self._do_request(
-                "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event, "",
-            )
-
         if not refresh:
             return self._state
         elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
             return self._state
-
-        self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations", "")
+        else:
+            if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
+                self._last_authenticated = self._do_authorisation()
+            self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
+            self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
+            self._cloud = self._do_request("GET", URL_GSE_CLOUD)
+            self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
+            self._dashboard_data = self._do_request(
+                "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
+            )
+            self._event_data = self._do_request(
+                "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
+            )
 
         try:
             if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
@@ -327,7 +323,7 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health", "")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health")
         try:
             if self._health_data.json()["system_health"] == "green":
                 self._health = STATE_HEALTH_GREEN
@@ -405,7 +401,7 @@ class GigasetelementsClientAPI:
             payload = json.dumps(switch)
             self._do_request("POST", URL_GSE_API + "/v1/me/devices/webfrontend/sink", payload)
         else:
-            self._do_request("DELETE", URL_GSE_API + "/v1/me/states/userAlarm", "")
+            self._do_request("DELETE", URL_GSE_API + "/v1/me/states/userAlarm")
 
     def get_panic_alarm(self):
 
