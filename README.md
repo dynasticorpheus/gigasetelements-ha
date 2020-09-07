@@ -58,6 +58,14 @@ gigasetelements:
 * Sensor (base, climate, thermostat)
 * Switch (away, night, custom, plug, panic)
 
+## Alarm mode mapping
+| Gigaset Elements | Home Assistant |
+| ---------------- | -------------- |
+| home             | disarmed       |
+| custom           | arm_home       |
+| away             | arm_away       |
+| night            | arm_night      |
+
 ## Credits
 Initial release based on the excellent [Securitas](https://github.com/vlumikero/home-assistant-securitas) custom component.
 
