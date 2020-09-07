@@ -114,7 +114,6 @@ class GigasetelementsSwitch(SwitchEntity):
         self._icon = "mdi:lock-open-outline"
         self._state = STATE_ALARM_DISARMED
         self._mode = mode
-        self._last_updated = 0
         self._client = client
         self.update()
 
@@ -143,7 +142,6 @@ class GigasetelementsSwitch(SwitchEntity):
             self._client.set_panic_alarm(STATE_ON)
         else:
             self._client.set_alarm_status(self._mode)
-        self._last_updated = time.time()
 
     def turn_off(self, **kwargs):
 
@@ -153,7 +151,6 @@ class GigasetelementsSwitch(SwitchEntity):
             self._client.set_panic_alarm(STATE_OFF)
         else:
             self._client.set_alarm_status(STATE_ALARM_DISARMED)
-        self._last_updated = time.time()
 
     def update(self):
 

@@ -101,7 +101,6 @@ class GigasetelementsClientAPI:
         self._time_zone = time_zone
         self._code = code
         self._code_arm_required = code_arm_required
-        self._last_updated = 0
         self._pending_time = 0
         self._target_state = 0
         self._state = STATE_ALARM_DISARMED
@@ -188,8 +187,6 @@ class GigasetelementsClientAPI:
 
         if self._target_state == 0:
             self._target_state = self._state
-
-        self._last_updated = time.time()
 
         _LOGGER.debug("Alarm state: %s, target alarm state: %s", self._state, self._target_state)
 
