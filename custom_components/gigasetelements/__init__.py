@@ -106,10 +106,10 @@ class GigasetelementsClientAPI:
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._last_event = str(int(time.time()) * 1000)
+        self._cloud = self._do_request("GET", URL_GSE_CLOUD)
         self._last_authenticated = self._do_authorisation()
         self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
         self._property_id = self._basestation_data.json()[0]["id"]
-        self._cloud = self._do_request("GET", URL_GSE_CLOUD)
         self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
         self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
         self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1")
@@ -143,6 +143,7 @@ class GigasetelementsClientAPI:
 
     def _do_authorisation(self):
 
+        _LOGGER.debug("API maintenance: %s", self._cloud.json()["isMaintenance"])
         _LOGGER.debug("Authenticating: %s", self._username)
 
         payload = {"password": self._password, "email": self._username}
@@ -161,7 +162,6 @@ class GigasetelementsClientAPI:
             if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
-            self._cloud = self._do_request("GET", URL_GSE_CLOUD)
             self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
             self._dashboard_data = self._do_request(
                 "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
@@ -337,7 +337,6 @@ class GigasetelementsClientAPI:
 
             sensor_attributes = self.get_sensor_attributes()
             sensor_attributes["alarm_mode"] = self._state
-            sensor_attributes["cloud_maintenance"] = self._cloud.json()["isMaintenance"]
             sensor_attributes["today_events"] = self._dashboard_data.json()["result"][
                 "recentEventsNumber"
             ]
