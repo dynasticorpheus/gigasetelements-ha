@@ -163,9 +163,6 @@ class GigasetelementsClientAPI:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
             self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
-            self._dashboard_data = self._do_request(
-                "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
-            )
             self._event_data = self._do_request(
                 "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
             )
@@ -436,6 +433,11 @@ class GigasetelementsClientAPI:
             for item in self._elements_data.json()["bs01"][0]["subelements"]:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item)
+
+        if sensor_state:
+            self._dashboard_data = self._do_request(
+                "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
+            )
 
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
