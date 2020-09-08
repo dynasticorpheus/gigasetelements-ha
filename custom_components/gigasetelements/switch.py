@@ -61,7 +61,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._sensor_attributes = {}
         self.update()
 
-        _LOGGER.info("Initialized %s switch: %s", self._type_name, self._name)
+        _LOGGER.info("Initialized switch.%s", self._name)
 
     def turn_on(self, **kwargs):
 
@@ -117,7 +117,7 @@ class GigasetelementsSwitch(SwitchEntity):
         self._client = client
         self.update()
 
-        _LOGGER.info("Initialized switch: %s", name)
+        _LOGGER.info("Initialized switch.%s", name)
 
     def _set_icon(self):
 
