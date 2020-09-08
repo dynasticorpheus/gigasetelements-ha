@@ -45,7 +45,7 @@ class GigasetelementsSensor(Entity):
         self._property_id = self._client._property_id
         self.update()
 
-        _LOGGER.debug("Initialized sensor.%s", self._name)
+        _LOGGER.info("Initialized sensor.%s", self._name)
 
     @property
     def name(self):

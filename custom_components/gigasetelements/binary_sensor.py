@@ -47,7 +47,7 @@ class GigasetelementsSensor(BinarySensorEntity):
         self._property_id = self._client._property_id
         self.update()
 
-        _LOGGER.debug("Initialized binary_sensor.%s", self._name)
+        _LOGGER.info("Initialized binary_sensor.%s", self._name)
 
     @property
     def name(self):

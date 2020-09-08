@@ -129,8 +129,8 @@ class GigasetelementsClientAPI:
         else:
             response = session.get(url, headers=HEADER_GSE)
 
-        if response.status_code != requests.codes.ok:
-            _LOGGER.debug(
+        if not response.ok:
+            _LOGGER.error(
                 "API request: [%s] %s %s",
                 response.status_code,
                 response.reason,
@@ -143,8 +143,12 @@ class GigasetelementsClientAPI:
 
     def _do_authorisation(self):
 
-        _LOGGER.debug("API maintenance: %s", self._cloud.json()["isMaintenance"])
-        _LOGGER.debug("Authenticating: %s", self._username)
+        m = self._username.split("@")
+        username = f'{m[0][0]}{"*"*(len(m[0])-2)}{m[0][-1]}@{m[1]}'
+
+        if self._cloud.json()["isMaintenance"]:
+            _LOGGER.error("API maintenance: %s", self._cloud.json()["isMaintenance"])
+        _LOGGER.info("Authenticating: %s", username)
 
         payload = {"password": self._password, "email": self._username}
         self._do_request("POST", URL_GSE_AUTH, payload)
@@ -193,7 +197,7 @@ class GigasetelementsClientAPI:
             return self._state
         elif diff > PENDING_STATE_THRESHOLD:
             self._target_state = self._state
-            _LOGGER.debug(
+            _LOGGER.warning(
                 "Pending time threshold exceeded, sync alarm target state: %s", self._target_state
             )
         else:
@@ -349,7 +353,7 @@ class GigasetelementsClientAPI:
 
     def set_alarm_status(self, action):
 
-        _LOGGER.debug("Setting alarm panel to %s", action)
+        _LOGGER.info("Setting alarm panel to %s", action)
 
         self._pending_time = time.time()
         self._target_state = action
@@ -369,7 +373,7 @@ class GigasetelementsClientAPI:
 
     def set_plug_status(self, sensor_id, action):
 
-        _LOGGER.debug("Set plug %s: %s", sensor_id, action)
+        _LOGGER.info("Set plug %s: %s", sensor_id, action)
 
         switch = {"name": action}
         payload = json.dumps(switch)
@@ -386,7 +390,7 @@ class GigasetelementsClientAPI:
 
     def set_panic_alarm(self, action):
 
-        _LOGGER.debug("Set panic alarm: %s", action)
+        _LOGGER.info("Set panic alarm: %s", action)
 
         if action == STATE_ON:
             switch = {"action": "alarm.user.start"}
