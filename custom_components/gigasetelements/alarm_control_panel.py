@@ -53,7 +53,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._code_arm_required = self._client._code_arm_required
         self.update()
 
-        _LOGGER.info("Initialized alarm control panel: %s", self._name)
+        _LOGGER.info("Initialized alarm_control_panel.%s", self._name)
 
     @property
     def supported_features(self) -> int:
