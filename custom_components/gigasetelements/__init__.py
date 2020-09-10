@@ -6,6 +6,7 @@ import json
 import logging
 import time
 
+from requests.packages.urllib3.util.retry import Retry
 import requests
 import voluptuous as vol
 
@@ -67,8 +68,15 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+retry_strategy = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=[429, 500, 502, 503, 504],
+    method_whitelist=["DELETE", "GET", "POST"],
+)
+
 session = requests.Session()
-session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
+session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retry_strategy))
 
 
 def setup(hass, config):
