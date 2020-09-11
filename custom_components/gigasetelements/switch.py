@@ -84,7 +84,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
     @property
     def device_state_attributes(self):
-        return self._hass.custom_attributes
+        return dict(sorted(self._hass.custom_attributes.items()))
 
     @property
     def name(self):
@@ -172,7 +172,7 @@ class GigasetelementsSwitch(SwitchEntity):
 
     @property
     def device_state_attributes(self):
-        return self._hass.custom_attributes
+        return dict(sorted(self._hass.custom_attributes.items()))
 
     @property
     def name(self):

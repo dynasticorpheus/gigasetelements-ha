@@ -314,6 +314,9 @@ class GigasetelementsClientAPI:
                     climate_state = str(round(float(item["states"]["temperature"]), 1))
                     sensor_attributes = self.get_sensor_attributes(item)
                 if sensor_type == "thermostat":
+                    sensor_attributes["battery_saver_mode"] = str(
+                        item["states"]["batterySaverMode"]
+                    )
                     sensor_attributes["setpoint"] = str(int(item["states"]["setPoint"]))
                 elif sensor_type == "climate":
                     sensor_attributes["humidity"] = str(round(item["states"]["humidity"], 1))
@@ -357,7 +360,7 @@ class GigasetelementsClientAPI:
 
         _LOGGER.debug("Health state: %s", self._health)
 
-        return self._health, dict(sorted(sensor_attributes.items()))
+        return self._health, sensor_attributes
 
     def set_alarm_status(self, action):
 

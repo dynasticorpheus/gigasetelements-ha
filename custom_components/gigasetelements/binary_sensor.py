@@ -59,7 +59,7 @@ class GigasetelementsSensor(BinarySensorEntity):
 
     @property
     def device_state_attributes(self):
-        return self._sensor_attributes
+        return dict(sorted(self._sensor_attributes.items()))
 
     @property
     def unique_id(self):

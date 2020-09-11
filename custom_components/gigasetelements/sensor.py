@@ -57,7 +57,7 @@ class GigasetelementsSensor(Entity):
 
     @property
     def device_state_attributes(self):
-        return self._sensor_attributes
+        return dict(sorted(self._sensor_attributes.items()))
 
     @property
     def device_class(self):
