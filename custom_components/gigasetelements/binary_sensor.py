@@ -84,14 +84,14 @@ class GigasetelementsSensor(BinarySensorEntity):
 
     def update(self):
 
-        if self._type_name in ["door", "windows", "universal"]:
+        if self._type_name in ["door", "window", "universal"]:
             attribute = "positionStatus"
         elif self._type_name in ["siren"]:
             attribute = "connectionStatus"
         elif self._type_name == "smoke":
             attribute = "smokeDetected"
 
-        if self._type_name in ["door", "windows", "universal", "smoke"]:
+        if self._type_name in ["door", "window", "universal", "smoke"]:
             self._sensor_state, self._sensor_attributes = self._client.get_sensor_state(
                 sensor_id=self._id, sensor_attribute=attribute
             )
