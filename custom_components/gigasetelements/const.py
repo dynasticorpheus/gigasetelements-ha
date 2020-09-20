@@ -64,6 +64,9 @@ STATE_HEALTH_RED = "Red"
 SENSOR_NAME = {
     "bs01": "base",
     "cl01": "climate",
+}
+
+THERMOSTAT_NAME = {
     "ts01": "thermostat",
 }
 
@@ -92,3 +95,7 @@ SWITCH_TYPE = {
     "night_mode": "armed_night",
     "panic_mode": "triggered",
 }
+
+TARGET_TEMP_HIGH = 30.0
+TARGET_TEMP_LOW = 5.0
+TARGET_TEMP_STEP = 0.5

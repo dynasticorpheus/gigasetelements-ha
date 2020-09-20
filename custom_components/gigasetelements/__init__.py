@@ -94,6 +94,7 @@ def setup(hass, config):
     hass.data[DOMAIN] = {"client": client, "name": name}
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
+    hass.helpers.discovery.load_platform("climate", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
     if create_switch:
         hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
@@ -132,6 +133,8 @@ class GigasetelementsClientAPI:
 
         if request_type == "POST":
             response = session.post(url, payload, headers=HEADER_GSE)
+        elif request_type == "PUT":
+            response = session.put(url, payload, headers=HEADER_GSE)
         elif request_type == "DELETE":
             response = session.delete(url)
         else:
@@ -302,6 +305,23 @@ class GigasetelementsClientAPI:
         _LOGGER.debug("Plug %s state: %s", sensor_id, plug_state)
 
         return plug_state, sensor_attributes
+
+    def set_thermostat_setpoint(self, sensor_id, setpoint):
+
+        _LOGGER.info("Setting thermostat %s: %s", sensor_id, setpoint)
+
+        setpoint = {"setPoint": setpoint}
+        payload = json.dumps(setpoint)
+        self._do_request(
+            "PUT",
+            URL_GSE_API
+            + "/v2/me/elements/bs01.ts01/"
+            + self._property_id
+            + "."
+            + sensor_id
+            + "/runtime-configuration",
+            payload,
+        )
 
     def get_climate_state(self, sensor_id, sensor_type):
 
