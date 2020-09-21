@@ -26,8 +26,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = hass.data[DOMAIN]["name"]
 
     for sensor in set(BINARY_SENSOR_NAME.values()):
-        list = client.get_sensor_list(sensor, BINARY_SENSOR_NAME)
-        for sensor_id in list:
+        sensor_list = client.get_sensor_list(sensor, BINARY_SENSOR_NAME)
+        for sensor_id in sensor_list:
             if sensor == "camera":
                 add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
             else:

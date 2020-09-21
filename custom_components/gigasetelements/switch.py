@@ -40,8 +40,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
 
     for switch in set(SWITCH_NAME.values()):
-        list = client.get_sensor_list(switch, SWITCH_NAME)
-        for switch_id in list:
+        sensor_list = client.get_sensor_list(switch, SWITCH_NAME)
+        for switch_id in sensor_list:
             add_devices(
                 [GigasetelementsPlugSwitch(hass, name + "_" + switch + "_" + switch_id, client)]
             )
