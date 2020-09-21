@@ -27,8 +27,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = hass.data[DOMAIN]["name"]
 
     for sensor in set(SENSOR_NAME.values()):
-        list = client.get_sensor_list(sensor, SENSOR_NAME)
-        for sensor_id in list:
+        sensor_list = client.get_sensor_list(sensor, SENSOR_NAME)
+        for sensor_id in sensor_list:
             add_devices([GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)])
 
 

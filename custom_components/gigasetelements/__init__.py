@@ -237,7 +237,7 @@ class GigasetelementsClientAPI:
 
         return sensor_id_list
 
-    def get_sensor_attributes(self, item={}, attr={}):
+    def get_sensor_attributes(self, item, attr):
 
         try:
             attr["battery_status"] = item.get("batteryStatus", None)
@@ -276,7 +276,7 @@ class GigasetelementsClientAPI:
                         sensor_state = False
                     elif item[sensor_attribute]:
                         sensor_state = True
-                    sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item, attr={})
             except (KeyError, ValueError):
                 pass
 
@@ -298,7 +298,7 @@ class GigasetelementsClientAPI:
                         plug_state = STATE_ON
                     else:
                         plug_state = STATE_UNKNOWN
-                    sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item, attr={})
             except (KeyError, ValueError):
                 pass
 
@@ -332,7 +332,7 @@ class GigasetelementsClientAPI:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     climate_state = str(round(float(item["states"]["temperature"]), 1))
-                    sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item, attr={})
                 if sensor_type == "thermostat":
                     sensor_attributes["battery_saver_mode"] = str(
                         item["states"]["batterySaverMode"]
@@ -367,7 +367,7 @@ class GigasetelementsClientAPI:
             else:
                 self._health = STATE_UNKNOWN
 
-            sensor_attributes = self.get_sensor_attributes()
+            sensor_attributes = self.get_sensor_attributes(item={}, attr={})
             sensor_attributes["alarm_mode"] = self._state
             sensor_attributes["today_events"] = self._dashboard_data.json()["result"][
                 "recentEventsNumber"
@@ -463,11 +463,11 @@ class GigasetelementsClientAPI:
         if len(sensor_id) == 12:
             for item in self._elements_data.json()["yc01"]:
                 if item["id"] == sensor_id.upper():
-                    sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item, attr={})
         else:
             for item in self._elements_data.json()["bs01"][0]["subelements"]:
                 if item["id"] == self._property_id + "." + sensor_id:
-                    sensor_attributes = self.get_sensor_attributes(item)
+                    sensor_attributes = self.get_sensor_attributes(item, attr={})
 
         if sensor_state:
             self._dashboard_data = self._do_request(
