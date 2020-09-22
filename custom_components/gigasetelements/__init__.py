@@ -248,8 +248,9 @@ class GigasetelementsClientAPI:
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
             attr["humidity"] = item["states"].get("humidity", None)
+            attr["pressure"] = item["states"].get("pressure", None)
             attr["setpoint"] = item["states"].get("setPoint", None)
-            attr["temp"] = item["states"].get("temperature", None)
+            attr["temperature"] = item["states"].get("temperature", None)
             attr["test_required"] = item.get("testRequired", None)
             attr["unmounted"] = item.get("unmounted", None)
         except (KeyError, ValueError):
@@ -329,8 +330,8 @@ class GigasetelementsClientAPI:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
-                    climate_state = round(float(sensor_attributes["temp"]), 1)
-                    sensor_attributes.pop("temp")
+                    climate_state = round(float(sensor_attributes["temperature"]), 1)
+                    sensor_attributes.pop("temperature")
             except (KeyError, ValueError):
                 pass
 
