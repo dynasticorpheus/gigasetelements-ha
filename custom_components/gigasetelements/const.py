@@ -84,6 +84,10 @@ BINARY_SENSOR_NAME = {
     "wd01": "water",
 }
 
+TEMPERATURE_SENSOR_NAME = {
+    "um01": "universal",
+}
+
 SWITCH_NAME = {
     "sp01": "plug",
     "sp02": "plug",
