@@ -34,6 +34,7 @@ from homeassistant.const import (
 
 from .const import (
     AUTH_GSE_EXPIRE,
+    DEVICE_MODE_MAP,
     DEVICE_NO_BATTERY,
     DEVICE_TRIGGERS,
     HEADER_GSE,
@@ -182,19 +183,11 @@ class GigasetelementsClientAPI:
                 "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
             )
 
-        try:
-            if self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "away":
-                self._state = STATE_ALARM_ARMED_AWAY
-            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "night":
-                self._state = STATE_ALARM_ARMED_NIGHT
-            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "custom":
-                self._state = STATE_ALARM_ARMED_HOME
-            elif self._basestation_data.json()[0]["intrusion_settings"]["active_mode"] == "home":
-                self._state = STATE_ALARM_DISARMED
-            else:
-                self._state = STATE_UNKNOWN
-        except (KeyError, ValueError):
-            pass
+        self._state = list(DEVICE_MODE_MAP.keys())[
+            list(DEVICE_MODE_MAP.values()).index(
+                self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+            )
+        ]
 
         if self._target_state == 0:
             self._target_state = self._state
@@ -214,7 +207,7 @@ class GigasetelementsClientAPI:
         else:
             return STATE_ALARM_PENDING
 
-    def get_sensor_list(self, sensor_type, list):
+    def get_sensor_list(self, sensor_type, sensor_list):
 
         sensor_id_list = []
 
@@ -227,7 +220,7 @@ class GigasetelementsClientAPI:
             except (KeyError, ValueError):
                 pass
         else:
-            for sensor_code, sensor_fullname in list.items():
+            for sensor_code, sensor_fullname in sensor_list.items():
                 if sensor_fullname == sensor_type:
                     for item in self._basestation_data.json()[0]["sensors"]:
                         if item["type"] == sensor_code:
@@ -240,8 +233,9 @@ class GigasetelementsClientAPI:
     def get_sensor_attributes(self, item, attr):
 
         try:
-            attr["battery_status"] = item.get("batteryStatus", None)
             attr["battery_low"] = item.get("permanentBatteryLow", None)
+            attr["battery_saver_mode"] = item["states"].get("batterySaverMode", None)
+            attr["battery_status"] = item.get("batteryStatus", None)
             attr["calibration_status"] = item.get("calibrationStatus", None)
             attr["chamber_fail"] = item.get("smokeChamberFail", None)
             attr["connection_status"] = item.get(
@@ -253,8 +247,11 @@ class GigasetelementsClientAPI:
             attr["firmware_status"] = item.get(
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
-            attr["unmounted"] = item.get("unmounted", None)
+            attr["humidity"] = item["states"].get("humidity", None)
+            attr["setpoint"] = item["states"].get("setPoint", None)
+            attr["temp"] = item["states"].get("temperature", None)
             attr["test_required"] = item.get("testRequired", None)
+            attr["unmounted"] = item.get("unmounted", None)
         except (KeyError, ValueError):
             pass
 
@@ -331,15 +328,9 @@ class GigasetelementsClientAPI:
         for item in self._elements_data.json()["bs01"][0]["subelements"]:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
-                    climate_state = str(round(float(item["states"]["temperature"]), 1))
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
-                if sensor_type == "thermostat":
-                    sensor_attributes["battery_saver_mode"] = str(
-                        item["states"]["batterySaverMode"]
-                    )
-                    sensor_attributes["setpoint"] = str(int(item["states"]["setPoint"]))
-                elif sensor_type == "climate":
-                    sensor_attributes["humidity"] = str(round(item["states"]["humidity"], 1))
+                    climate_state = round(float(sensor_attributes["temp"]), 1)
+                    sensor_attributes.pop("temp")
             except (KeyError, ValueError):
                 pass
 
@@ -390,15 +381,7 @@ class GigasetelementsClientAPI:
         self._target_state = action
         self._state = STATE_ALARM_PENDING
 
-        if action == STATE_ALARM_ARMED_AWAY:
-            status_name = "away"
-        elif action == STATE_ALARM_ARMED_HOME:
-            status_name = "custom"
-        elif action == STATE_ALARM_ARMED_NIGHT:
-            status_name = "night"
-        else:
-            status_name = "home"
-        switch = {"intrusion_settings": {"active_mode": status_name}}
+        switch = {"intrusion_settings": {"active_mode": DEVICE_MODE_MAP[action]}}
         payload = json.dumps(switch)
         self._do_request("POST", URL_GSE_API + "/v1/me/basestations/" + self._property_id, payload)
 

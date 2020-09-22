@@ -7,18 +7,14 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 
 from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_PENDING,
-    STATE_ALARM_TRIGGERED,
     STATE_ON,
     STATE_OFF,
 )
 
 from .const import (
     DEVICE_CLASS_MAP,
+    DEVICE_ICON_MAP,
     STATE_UPDATE_INTERVAL,
     SWITCH_NAME,
     SWITCH_TYPE,
@@ -104,7 +100,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
 
 class GigasetelementsSwitch(SwitchEntity):
-    def __init__(self, hass, name, client, mode=STATE_ALARM_ARMED_AWAY):
+    def __init__(self, hass, name, client, mode):
 
         self._hass = hass
         self._hass.custom_attributes = {}
@@ -117,21 +113,6 @@ class GigasetelementsSwitch(SwitchEntity):
         self.update()
 
         _LOGGER.info("Initialized switch.%s", name)
-
-    def _set_icon(self):
-
-        if self._state == STATE_ALARM_ARMED_AWAY:
-            self._icon = "mdi:shield-key"
-        elif self._state in [STATE_ALARM_ARMED_HOME, STATE_ALARM_ARMED_NIGHT]:
-            self._icon = "mdi:shield-half-full"
-        elif self._state in [STATE_ALARM_DISARMED, STATE_OFF]:
-            self._icon = "mdi:shield-off"
-        elif self._state in [STATE_ALARM_TRIGGERED, STATE_ON]:
-            self._icon = "mdi:shield-alert"
-        elif self._state == STATE_ALARM_PENDING:
-            self._icon = "mdi:shield-edit"
-        else:
-            self._icon = "mdi:shield-remove"
 
     def turn_on(self, **kwargs):
 
@@ -161,7 +142,7 @@ class GigasetelementsSwitch(SwitchEntity):
             self._state = self._client.get_alarm_status(refresh=False)
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
-        self._set_icon()
+        self._icon = DEVICE_ICON_MAP[self._state]
 
     @property
     def is_on(self):
