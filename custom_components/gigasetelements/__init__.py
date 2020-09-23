@@ -130,7 +130,8 @@ class GigasetelementsClientAPI:
 
         _LOGGER.debug("Property id: %s", self._property_id)
 
-    def _do_request(self, request_type, url, payload=""):
+    @staticmethod
+    def _do_request(request_type, url, payload=""):
 
         if request_type == "POST":
             response = session.post(url, payload, headers=HEADER_GSE)
@@ -206,6 +207,8 @@ class GigasetelementsClientAPI:
             )
         else:
             return STATE_ALARM_PENDING
+
+        return self._state
 
     def get_sensor_list(self, sensor_type, sensor_list):
 
