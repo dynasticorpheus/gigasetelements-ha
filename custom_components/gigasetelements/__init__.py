@@ -234,7 +234,7 @@ class GigasetelementsClientAPI:
 
         try:
             attr["battery_low"] = item.get("permanentBatteryLow", None)
-            attr["battery_saver_mode"] = item["states"].get("batterySaverMode", None)
+            attr["battery_saver_mode"] = item.get("states", {}).get("batterySaverMode")
             attr["battery_status"] = item.get("batteryStatus", None)
             attr["calibration_status"] = item.get("calibrationStatus", None)
             attr["chamber_fail"] = item.get("smokeChamberFail", None)
@@ -247,10 +247,10 @@ class GigasetelementsClientAPI:
             attr["firmware_status"] = item.get(
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
-            attr["humidity"] = item["states"].get("humidity", None)
-            attr["pressure"] = item["states"].get("pressure", None)
-            attr["setpoint"] = item["states"].get("setPoint", None)
-            attr["temperature"] = item["states"].get("temperature", None)
+            attr["humidity"] = item.get("states", {}).get("humidity")
+            attr["pressure"] = item.get("states", {}).get("pressure")
+            attr["setpoint"] = item.get("states", {}).get("setPoint")
+            attr["temperature"] = item.get("states", {}).get("temperature")
             attr["test_required"] = item.get("testRequired", None)
             attr["unmounted"] = item.get("unmounted", None)
         except (KeyError, ValueError):
