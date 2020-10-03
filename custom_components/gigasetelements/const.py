@@ -105,7 +105,7 @@ SWITCH_NAME = {
 
 SWITCH_TYPE = {
     "away_mode": "armed_away",
-    "home_mode": "armed_home",
+    "custom_mode": "armed_home",
     "night_mode": "armed_night",
     "panic_mode": "triggered",
 }
