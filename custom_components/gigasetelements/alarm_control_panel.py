@@ -6,17 +6,15 @@ import logging
 import re
 
 from homeassistant.components.alarm_control_panel import (
-    AlarmControlPanelEntity,
     FORMAT_NUMBER,
     FORMAT_TEXT,
+    AlarmControlPanelEntity,
 )
-
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
     SUPPORT_ALARM_ARM_NIGHT,
 )
-
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
@@ -24,7 +22,6 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
 )
-
 
 from .const import STATE_UPDATE_INTERVAL
 

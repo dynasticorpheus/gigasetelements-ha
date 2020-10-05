@@ -1,36 +1,35 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from urllib.parse import urlparse
 import json
 import logging
 import time
+from urllib.parse import urlparse
 
-from requests.packages.urllib3.util.retry import Retry
 import requests
+from requests.packages.urllib3.util.retry import Retry
 import voluptuous as vol
-
-from homeassistant.helpers import discovery
-import homeassistant.helpers.config_validation as cv
 
 from homeassistant.const import (
     CONF_CODE,
-    CONF_USERNAME,
+    CONF_NAME,
     CONF_PASSWORD,
     CONF_RESOURCES,
-    CONF_NAME,
     CONF_SCAN_INTERVAL,
     CONF_SWITCHES,
+    CONF_USERNAME,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
-    STATE_UNKNOWN,
     STATE_OFF,
     STATE_ON,
+    STATE_UNKNOWN,
 )
+from homeassistant.helpers import discovery
+import homeassistant.helpers.config_validation as cv
 
 from .const import (
     AUTH_GSE_EXPIRE,
@@ -39,12 +38,12 @@ from .const import (
     DEVICE_TRIGGERS,
     HEADER_GSE,
     PENDING_STATE_THRESHOLD,
-    URL_GSE_AUTH,
-    URL_GSE_API,
-    URL_GSE_CLOUD,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
+    URL_GSE_API,
+    URL_GSE_AUTH,
+    URL_GSE_CLOUD,
 )
 
 _LOGGER = logging.getLogger(__name__)

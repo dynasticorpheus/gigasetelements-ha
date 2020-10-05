@@ -5,12 +5,7 @@ from datetime import timedelta
 import logging
 
 from homeassistant.components.switch import SwitchEntity
-
-from homeassistant.const import (
-    STATE_ALARM_DISARMED,
-    STATE_ON,
-    STATE_OFF,
-)
+from homeassistant.const import STATE_ALARM_DISARMED, STATE_OFF, STATE_ON
 
 from .const import (
     DEVICE_CLASS_MAP,

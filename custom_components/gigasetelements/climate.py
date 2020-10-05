@@ -11,18 +11,14 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     SUPPORT_TARGET_TEMPERATURE,
 )
-
-from homeassistant.const import (
-    ATTR_TEMPERATURE,
-    TEMP_CELSIUS,
-)
+from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 
 from .const import (
+    STATE_UPDATE_INTERVAL,
     TARGET_TEMP_HIGH,
     TARGET_TEMP_LOW,
     TARGET_TEMP_STEP,
     THERMOSTAT_NAME,
-    STATE_UPDATE_INTERVAL,
 )
 
 DOMAIN = "gigasetelements"
