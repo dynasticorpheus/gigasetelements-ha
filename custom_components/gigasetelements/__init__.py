@@ -122,7 +122,7 @@ class GigasetelementsClientAPI:
         self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
         self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
         self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1")
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
         self._dashboard_data = self._do_request(
             "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
         )
@@ -345,13 +345,13 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v2/me/health")
+        self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
         try:
-            if self._health_data.json()["system_health"] == "green":
+            if self._health_data.json()["systemHealth"] == "green":
                 self._health = STATE_HEALTH_GREEN
-            elif self._health_data.json()["system_health"] == "orange":
+            elif self._health_data.json()["systemHealth"] == "orange":
                 self._health = STATE_HEALTH_ORANGE
-            elif self._health_data.json()["system_health"] == "red":
+            elif self._health_data.json()["systemHealth"] == "red":
                 self._health = STATE_HEALTH_RED
                 if self._health_data.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
                     self._state = STATE_ALARM_TRIGGERED
