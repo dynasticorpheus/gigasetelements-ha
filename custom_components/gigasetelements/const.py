@@ -27,6 +27,7 @@ DEVICE_CLASS_MAP = {
     "smoke": "smoke",
     "thermostat": "temperature",
     "universal": "door",
+    "water": "moisture",
     "window": "window",
 }
 
