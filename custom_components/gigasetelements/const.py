@@ -72,7 +72,11 @@ DEVICE_TRIGGERS = [
     "button3",
     "button4",
     "movement",
+    "open",
     "sirenon",
+    "smoke_detected",
+    "tilt",
+    "water_detected",
     "yc01.motion",
 ]
 

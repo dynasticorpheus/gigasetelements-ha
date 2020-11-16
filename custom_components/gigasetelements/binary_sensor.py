@@ -85,12 +85,26 @@ class GigasetelementsSensor(BinarySensorEntity):
 
     def update(self):
 
-        if self._type_name in ["door", "window", "universal", "smoke"]:
-            self._sensor_state, self._sensor_attributes = self._client.get_sensor_state(
-                sensor_id=self._id, sensor_attribute=DEVICE_STATUS_MAP[self._type_name]
-            )
-        elif self._type_name in ["motion", "button", "siren"]:
+        if self._type_name in [
+            "button",
+            "door",
+            "motion",
+            "siren",
+            "smoke",
+            "universal",
+            "water",
+            "window",
+        ]:
             self._sensor_state, self._sensor_attributes = self._client.get_event_detected(
                 sensor_id=self._id
             )
+            if not self._sensor_state and self._type_name in [
+                "door",
+                "smoke",
+                "universal",
+                "window",
+            ]:
+                self._sensor_state, self._sensor_attributes = self._client.get_sensor_state(
+                    sensor_id=self._id, sensor_attribute=DEVICE_STATUS_MAP[self._type_name]
+                )
         self._set_icon()
