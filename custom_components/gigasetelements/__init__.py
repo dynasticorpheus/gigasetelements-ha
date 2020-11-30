@@ -353,10 +353,10 @@ class GigasetelementsClientAPI:
                 self._health = STATE_HEALTH_ORANGE
             elif self._health_data.json()["systemHealth"] == "red":
                 self._health = STATE_HEALTH_RED
-                if self._health_data.json()["status_msg_id"] in ["alarm.user", "system_intrusion"]:
+                if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
                     self._state = STATE_ALARM_TRIGGERED
                     _LOGGER.debug(
-                        "Alarm trigger state: %s", self._health_data.json()["status_msg_id"]
+                        "Alarm trigger state: %s", self._health_data.json()["statusMsgId"]
                     )
             else:
                 self._health = STATE_UNKNOWN
@@ -419,7 +419,7 @@ class GigasetelementsClientAPI:
     def get_panic_alarm(self):
 
         try:
-            if self._health_data.json()["status_msg_id"] == "alarm.user":
+            if self._health_data.json()["statusMsgId"] == "alarm.user":
                 panic_state = STATE_ON
             else:
                 panic_state = STATE_OFF
