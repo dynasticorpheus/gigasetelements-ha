@@ -5,5 +5,6 @@
   "issue_tracker": "https://github.com/dynasticorpheus/gigasetelements-ha/issues",
   "dependencies": [],
   "codeowners": ["@dynasticorpheus"],
-  "requirements": []
+  "requirements": [],
+  "version": "0.3.1"
 }
