@@ -1,7 +1,7 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 
 from homeassistant.components.switch import SwitchEntity
@@ -49,6 +49,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._client = client
         self._property_id = self._client._property_id
         self._sensor_attributes = {}
+        self._ts = 0
         self.update()
 
         _LOGGER.info("Initialized switch.%s", self._name)
@@ -56,18 +57,21 @@ class GigasetelementsPlugSwitch(SwitchEntity):
     def turn_on(self, **kwargs):
 
         self._client.set_plug_status(sensor_id=self._id, action=STATE_ON)
+        self._ts = datetime.utcnow().timestamp()
+        self._state = STATE_ON
 
     def turn_off(self, **kwargs):
 
         self._client.set_plug_status(sensor_id=self._id, action=STATE_OFF)
+        self._ts = datetime.utcnow().timestamp()
+        self._state = STATE_OFF
 
     def update(self):
 
-        attributes = {}
+        if datetime.utcnow().timestamp() - self._ts < STATE_UPDATE_INTERVAL * 2:
+            return
 
         self._state, self._sensor_attributes = self._client.get_plug_state(sensor_id=self._id)
-        attributes = self._sensor_attributes
-        self._hass.custom_attributes = attributes
 
     @property
     def is_on(self):
@@ -75,6 +79,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
     @property
     def device_state_attributes(self):
+        self._hass.custom_attributes = self._sensor_attributes
         return dict(sorted(self._hass.custom_attributes.items()))
 
     @property
