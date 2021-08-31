@@ -82,3 +82,4 @@ If you like this custom component you might want to consider to [BuyMeABeer? ğŸ
 * *Frank M*
 * *Max G*
 * *Andreas G*
+* *Florian B*
