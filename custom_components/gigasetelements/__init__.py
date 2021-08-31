@@ -155,12 +155,9 @@ class GigasetelementsClientAPI:
 
     def _do_authorisation(self):
 
-        m = self._username.split("@")
-        username = f'{m[0][0]}{"*"*(len(m[0])-2)}{m[0][-1]}@{m[1]}'
-
         if self._cloud.json()["isMaintenance"]:
             _LOGGER.error("API maintenance: %s", self._cloud.json()["isMaintenance"])
-        _LOGGER.info("Authenticating: %s", username)
+        _LOGGER.info("Authenticating")
 
         payload = {"password": self._password, "email": self._username}
         self._do_request("POST", URL_GSE_AUTH, payload)
