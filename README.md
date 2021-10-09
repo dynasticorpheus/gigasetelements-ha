@@ -20,7 +20,7 @@ This project is a custom component for [Home-Assistant](https://home-assistant.i
 2. Restart the Home-Assitant instance.
 
 
-## Configuration
+## Configuration (*configuration.yaml*)
 
 ### Schema
 ```yaml
