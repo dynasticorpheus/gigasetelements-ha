@@ -78,7 +78,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         return self._state == STATE_ON
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         self._hass.custom_attributes = self._sensor_attributes
         return dict(sorted(self._hass.custom_attributes.items()))
 
@@ -152,7 +152,7 @@ class GigasetelementsSwitch(SwitchEntity):
             return self._client.target_state == self._mode
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         return dict(sorted(self._hass.custom_attributes.items()))
 
     @property

@@ -75,6 +75,7 @@ DEVICE_TRIGGERS = [
     "open",
     "sirenon",
     "smoke_detected",
+    "test",
     "tilt",
     "water_detected",
     "yc01.motion",
