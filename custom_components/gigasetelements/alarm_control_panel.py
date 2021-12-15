@@ -29,6 +29,8 @@ DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 
