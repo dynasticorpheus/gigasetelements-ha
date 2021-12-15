@@ -163,13 +163,12 @@ class GigasetelementsClientAPI:
 
         if not refresh:
             return self._state
-        elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
-            return self._state
         else:
             if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
             self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
+            self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
             self._event_data = self._do_request(
                 "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
             )
@@ -336,7 +335,6 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
         try:
             if self._health_data.json()["systemHealth"] == "green":
                 self._health = STATE_HEALTH_GREEN
