@@ -14,13 +14,8 @@ from homeassistant.const import (
     CONF_CODE,
     CONF_NAME,
     CONF_PASSWORD,
-    CONF_RESOURCES,
-    CONF_SCAN_INTERVAL,
     CONF_SWITCHES,
     CONF_USERNAME,
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
@@ -28,7 +23,6 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNKNOWN,
 )
-from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
