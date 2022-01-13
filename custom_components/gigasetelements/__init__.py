@@ -1,6 +1,7 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
+from datetime import datetime
 import json
 import logging
 import time
@@ -14,13 +15,8 @@ from homeassistant.const import (
     CONF_CODE,
     CONF_NAME,
     CONF_PASSWORD,
-    CONF_RESOURCES,
-    CONF_SCAN_INTERVAL,
     CONF_SWITCHES,
     CONF_USERNAME,
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
@@ -28,13 +24,11 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNKNOWN,
 )
-from homeassistant.helpers import discovery
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
     AUTH_GSE_EXPIRE,
     DEVICE_MODE_MAP,
-    DEVICE_NO_BATTERY,
     DEVICE_TRIGGERS,
     HEADER_GSE,
     PENDING_STATE_THRESHOLD,
@@ -169,13 +163,12 @@ class GigasetelementsClientAPI:
 
         if not refresh:
             return self._state
-        elif self._state == STATE_ALARM_TRIGGERED and self._health == STATE_HEALTH_RED:
-            return self._state
         else:
             if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
             self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
+            self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
             self._event_data = self._do_request(
                 "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
             )
@@ -281,6 +274,25 @@ class GigasetelementsClientAPI:
 
         return sensor_state, sensor_attributes
 
+    def get_privacy_state(self):
+
+        privacy_on = STATE_UNKNOWN
+
+        for item in self._basestation_data.json()[0]["intrusion_settings"]["modes"]:
+            try:
+                privacy_on = item[
+                    self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+                ]["privacy_mode"]
+            except (KeyError, ValueError):
+                pass
+
+        if privacy_on:
+            _LOGGER.debug(
+                "Privacy mode detected for current alarm mode hence not all events are recorded"
+            )
+
+        return privacy_on
+
     def get_plug_state(self, sensor_id):
 
         sensor_attributes = {}
@@ -342,7 +354,6 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
 
-        self._health_data = self._do_request("GET", URL_GSE_API + "/v3/me/health")
         try:
             if self._health_data.json()["systemHealth"] == "green":
                 self._health = STATE_HEALTH_GREEN
@@ -366,6 +377,26 @@ class GigasetelementsClientAPI:
             sensor_attributes["today_recordings"] = self._dashboard_data.json()["result"][
                 "recentEventCounts"
             ]["yc01.recording"]
+            sensor_attributes["privacy_mode"] = str(self.get_privacy_state())
+
+            for item in self._dashboard_data.json()["result"]["recentHomecomings"]:
+                try:
+                    ts = int(item["ts"]) / 1000
+                    sensor_attributes["recent_homecoming"] = str(
+                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                    )
+                except (KeyError, ValueError):
+                    pass
+
+            for item in self._dashboard_data.json()["result"]["recentHomeleavings"]:
+                try:
+                    ts = int(item["ts"]) / 1000
+                    sensor_attributes["recent_homeleaving"] = str(
+                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                    )
+                except (KeyError, ValueError):
+                    pass
+
         except (KeyError, ValueError):
             pass
 

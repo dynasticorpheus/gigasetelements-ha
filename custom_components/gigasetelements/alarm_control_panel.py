@@ -29,6 +29,8 @@ DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
+PARALLEL_UPDATES = 1
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -51,6 +53,11 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self.update()
 
         _LOGGER.info("Initialized alarm_control_panel.%s", self._name)
+
+        if self._client.get_privacy_state():
+            _LOGGER.warn(
+                "Privacy mode detected for current alarm mode hence not all events are recorded"
+            )
 
     @property
     def supported_features(self) -> int:
