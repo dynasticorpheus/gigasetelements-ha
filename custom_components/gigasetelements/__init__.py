@@ -1,6 +1,7 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
+from datetime import datetime
 import json
 import logging
 import time
@@ -28,7 +29,6 @@ import homeassistant.helpers.config_validation as cv
 from .const import (
     AUTH_GSE_EXPIRE,
     DEVICE_MODE_MAP,
-    DEVICE_NO_BATTERY,
     DEVICE_TRIGGERS,
     HEADER_GSE,
     PENDING_STATE_THRESHOLD,
@@ -274,6 +274,25 @@ class GigasetelementsClientAPI:
 
         return sensor_state, sensor_attributes
 
+    def get_privacy_state(self):
+
+        privacy_on = STATE_UNKNOWN
+
+        for item in self._basestation_data.json()[0]["intrusion_settings"]["modes"]:
+            try:
+                privacy_on = item[
+                    self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+                ]["privacy_mode"]
+            except (KeyError, ValueError):
+                pass
+
+        if privacy_on:
+            _LOGGER.debug(
+                "Privacy mode detected for current alarm mode hence not all events are recorded"
+            )
+
+        return privacy_on
+
     def get_plug_state(self, sensor_id):
 
         sensor_attributes = {}
@@ -358,6 +377,26 @@ class GigasetelementsClientAPI:
             sensor_attributes["today_recordings"] = self._dashboard_data.json()["result"][
                 "recentEventCounts"
             ]["yc01.recording"]
+            sensor_attributes["privacy_mode"] = str(self.get_privacy_state())
+
+            for item in self._dashboard_data.json()["result"]["recentHomecomings"]:
+                try:
+                    ts = int(item["ts"]) / 1000
+                    sensor_attributes["recent_homecoming"] = str(
+                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                    )
+                except (KeyError, ValueError):
+                    pass
+
+            for item in self._dashboard_data.json()["result"]["recentHomeleavings"]:
+                try:
+                    ts = int(item["ts"]) / 1000
+                    sensor_attributes["recent_homeleaving"] = str(
+                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                    )
+                except (KeyError, ValueError):
+                    pass
+
         except (KeyError, ValueError):
             pass
 

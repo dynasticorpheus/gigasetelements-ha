@@ -54,6 +54,11 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
         _LOGGER.info("Initialized alarm_control_panel.%s", self._name)
 
+        if self._client.get_privacy_state():
+            _LOGGER.warn(
+                "Privacy mode detected for current alarm mode hence not all events are recorded"
+            )
+
     @property
     def supported_features(self) -> int:
         return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
