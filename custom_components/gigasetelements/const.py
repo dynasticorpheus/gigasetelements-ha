@@ -16,6 +16,14 @@ BINARY_SENSOR_NAME = {
     "yc01": "camera",
 }
 
+BUTTON_PRESS_MAP = {
+    "button": "idle",
+    "button1": "short",
+    "button2": "double",
+    "button3": "long",
+    "button4": "very_long",
+}
+
 DEVICE_CLASS_MAP = {
     "base": None,
     "button": "motion",

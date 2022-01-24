@@ -20,6 +20,7 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
+    STATE_IDLE,
     STATE_OFF,
     STATE_ON,
     STATE_UNKNOWN,
@@ -28,6 +29,7 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import (
     AUTH_GSE_EXPIRE,
+    BUTTON_PRESS_MAP,
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
     HEADER_GSE,
@@ -458,8 +460,9 @@ class GigasetelementsClientAPI:
 
         return panic_state
 
-    def get_event_detected(self, sensor_id):
+    def get_event_detected(self, sensor_id, sensor_type_name):
 
+        button_press = STATE_IDLE
         sensor_state = False
         sensor_attributes = {}
 
@@ -471,6 +474,8 @@ class GigasetelementsClientAPI:
                 elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
                     self._last_event = str(int(item["ts"]) + 1)
                     sensor_state = True
+                    if item["type"] in BUTTON_PRESS_MAP:
+                        button_press = BUTTON_PRESS_MAP[item["type"]]
             except (KeyError, ValueError):
                 pass
 
@@ -482,6 +487,8 @@ class GigasetelementsClientAPI:
             for item in self._elements_data.json()["bs01"][0]["subelements"]:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
+                    if sensor_type_name in BUTTON_PRESS_MAP:
+                        sensor_attributes["press"] = button_press
 
         if sensor_state:
             self._dashboard_data = self._do_request(
