@@ -81,29 +81,31 @@ def setup(hass, config):
     password = config[DOMAIN].get(CONF_PASSWORD)
     code = config[DOMAIN].get(CONF_CODE)
     code_arm_required = config[DOMAIN].get(CONF_CODE_ARM_REQUIRED)
-    create_switch = config[DOMAIN].get(CONF_SWITCHES)
+    alarm_switch = config[DOMAIN].get(CONF_SWITCHES)
     time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
 
-    client = GigasetelementsClientAPI(username, password, code, code_arm_required, time_zone)
+    client = GigasetelementsClientAPI(
+        username, password, code, code_arm_required, time_zone, alarm_switch
+    )
 
     hass.data[DOMAIN] = {"client": client, "name": name}
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("climate", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
-    if create_switch:
-        hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
+    hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
 
     return True
 
 
 class GigasetelementsClientAPI:
-    def __init__(self, username, password, code, code_arm_required, time_zone):
+    def __init__(self, username, password, code, code_arm_required, time_zone, alarm_switch):
 
         self._username = username
         self._password = password
         self._time_zone = time_zone
+        self._alarm_switch = alarm_switch
         self._code = code
         self._code_arm_required = code_arm_required
         self._pending_time = 0
