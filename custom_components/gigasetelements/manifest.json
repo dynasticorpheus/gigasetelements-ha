@@ -1,10 +1,12 @@
 {
   "domain": "gigasetelements",
   "name": "Gigaset Elements",
+  "config_flow": false,
   "documentation": "https://github.com/dynasticorpheus/gigasetelements-ha/blob/master/README.md",
   "issue_tracker": "https://github.com/dynasticorpheus/gigasetelements-ha/issues",
   "dependencies": [],
   "codeowners": ["@dynasticorpheus"],
   "requirements": [],
+  "iot_class": "cloud_polling",
   "version": "2022.1.0"
 }
