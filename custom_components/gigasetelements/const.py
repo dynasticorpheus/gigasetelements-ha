@@ -99,7 +99,7 @@ HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
 }
 
-PENDING_STATE_THRESHOLD = 30
+PENDING_STATE_THRESHOLD = 10
 
 SENSOR_NAME = {
     "bs01": "base",

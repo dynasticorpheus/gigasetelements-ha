@@ -183,6 +183,13 @@ class GigasetelementsClientAPI:
             )
         ]
 
+        try:
+            if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
+                self._state = STATE_ALARM_TRIGGERED
+                _LOGGER.debug("Alarm trigger state: %s", self._health_data.json()["statusMsgId"])
+        except (KeyError, ValueError):
+            pass
+
         if self._target_state == 0:
             self._target_state = self._state
 
@@ -190,16 +197,18 @@ class GigasetelementsClientAPI:
 
         diff = time.time() - self._pending_time
 
-        if self._state == self._target_state:
-            self._pending_time = time.time()
-            return self._state
-        elif diff > PENDING_STATE_THRESHOLD:
-            self._target_state = self._state
-            _LOGGER.warning(
-                "Pending time threshold exceeded, sync alarm target state: %s", self._target_state
-            )
-        else:
-            return STATE_ALARM_PENDING
+        if self._state != STATE_ALARM_TRIGGERED:
+            if self._state == self._target_state:
+                self._pending_time = time.time()
+                return self._state
+            elif diff > PENDING_STATE_THRESHOLD:
+                self._target_state = self._state
+                _LOGGER.warning(
+                    "Pending time threshold exceeded, sync alarm target state: %s",
+                    self._target_state,
+                )
+            else:
+                return STATE_ALARM_PENDING
 
         return self._state
 
@@ -365,11 +374,6 @@ class GigasetelementsClientAPI:
                 self._health = STATE_HEALTH_ORANGE
             elif self._health_data.json()["systemHealth"] == "red":
                 self._health = STATE_HEALTH_RED
-                if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
-                    self._state = STATE_ALARM_TRIGGERED
-                    _LOGGER.debug(
-                        "Alarm trigger state: %s", self._health_data.json()["statusMsgId"]
-                    )
             else:
                 self._health = STATE_UNKNOWN
 
