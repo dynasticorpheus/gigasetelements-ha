@@ -8,5 +8,5 @@
   "codeowners": ["@dynasticorpheus"],
   "requirements": [],
   "iot_class": "cloud_polling",
-  "version": "2022.1.0"
+  "version": "2022.2.0"
 }
