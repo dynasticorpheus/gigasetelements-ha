@@ -16,6 +16,14 @@ BINARY_SENSOR_NAME = {
     "yc01": "camera",
 }
 
+BUTTON_PRESS_MAP = {
+    "button": "idle",
+    "button1": "short",
+    "button2": "double",
+    "button3": "long",
+    "button4": "very_long",
+}
+
 DEVICE_CLASS_MAP = {
     "base": None,
     "button": "motion",
@@ -91,7 +99,7 @@ HEADER_GSE = {
     "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
 }
 
-PENDING_STATE_THRESHOLD = 30
+PENDING_STATE_THRESHOLD = 10
 
 SENSOR_NAME = {
     "bs01": "base",

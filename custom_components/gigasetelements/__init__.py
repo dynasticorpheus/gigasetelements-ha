@@ -20,6 +20,7 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_PENDING,
     STATE_ALARM_TRIGGERED,
+    STATE_IDLE,
     STATE_OFF,
     STATE_ON,
     STATE_UNKNOWN,
@@ -28,6 +29,7 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import (
     AUTH_GSE_EXPIRE,
+    BUTTON_PRESS_MAP,
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
     HEADER_GSE,
@@ -79,29 +81,31 @@ def setup(hass, config):
     password = config[DOMAIN].get(CONF_PASSWORD)
     code = config[DOMAIN].get(CONF_CODE)
     code_arm_required = config[DOMAIN].get(CONF_CODE_ARM_REQUIRED)
-    create_switch = config[DOMAIN].get(CONF_SWITCHES)
+    alarm_switch = config[DOMAIN].get(CONF_SWITCHES)
     time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
 
-    client = GigasetelementsClientAPI(username, password, code, code_arm_required, time_zone)
+    client = GigasetelementsClientAPI(
+        username, password, code, code_arm_required, time_zone, alarm_switch
+    )
 
     hass.data[DOMAIN] = {"client": client, "name": name}
     hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("climate", DOMAIN, {}, config)
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
-    if create_switch:
-        hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
+    hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
 
     return True
 
 
 class GigasetelementsClientAPI:
-    def __init__(self, username, password, code, code_arm_required, time_zone):
+    def __init__(self, username, password, code, code_arm_required, time_zone, alarm_switch):
 
         self._username = username
         self._password = password
         self._time_zone = time_zone
+        self._alarm_switch = alarm_switch
         self._code = code
         self._code_arm_required = code_arm_required
         self._pending_time = 0
@@ -179,6 +183,13 @@ class GigasetelementsClientAPI:
             )
         ]
 
+        try:
+            if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
+                self._state = STATE_ALARM_TRIGGERED
+                _LOGGER.debug("Alarm trigger state: %s", self._health_data.json()["statusMsgId"])
+        except (KeyError, ValueError):
+            pass
+
         if self._target_state == 0:
             self._target_state = self._state
 
@@ -186,16 +197,18 @@ class GigasetelementsClientAPI:
 
         diff = time.time() - self._pending_time
 
-        if self._state == self._target_state:
-            self._pending_time = time.time()
-            return self._state
-        elif diff > PENDING_STATE_THRESHOLD:
-            self._target_state = self._state
-            _LOGGER.warning(
-                "Pending time threshold exceeded, sync alarm target state: %s", self._target_state
-            )
-        else:
-            return STATE_ALARM_PENDING
+        if self._state != STATE_ALARM_TRIGGERED:
+            if self._state == self._target_state:
+                self._pending_time = time.time()
+                return self._state
+            elif diff > PENDING_STATE_THRESHOLD:
+                self._target_state = self._state
+                _LOGGER.warning(
+                    "Pending time threshold exceeded, sync alarm target state: %s",
+                    self._target_state,
+                )
+            else:
+                return STATE_ALARM_PENDING
 
         return self._state
 
@@ -361,11 +374,6 @@ class GigasetelementsClientAPI:
                 self._health = STATE_HEALTH_ORANGE
             elif self._health_data.json()["systemHealth"] == "red":
                 self._health = STATE_HEALTH_RED
-                if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
-                    self._state = STATE_ALARM_TRIGGERED
-                    _LOGGER.debug(
-                        "Alarm trigger state: %s", self._health_data.json()["statusMsgId"]
-                    )
             else:
                 self._health = STATE_UNKNOWN
 
@@ -458,8 +466,9 @@ class GigasetelementsClientAPI:
 
         return panic_state
 
-    def get_event_detected(self, sensor_id):
+    def get_event_detected(self, sensor_id, sensor_type_name):
 
+        button_press = STATE_IDLE
         sensor_state = False
         sensor_attributes = {}
 
@@ -471,6 +480,8 @@ class GigasetelementsClientAPI:
                 elif item["type"] in DEVICE_TRIGGERS and item["o"]["id"] == sensor_id:
                     self._last_event = str(int(item["ts"]) + 1)
                     sensor_state = True
+                    if item["type"] in BUTTON_PRESS_MAP:
+                        button_press = BUTTON_PRESS_MAP[item["type"]]
             except (KeyError, ValueError):
                 pass
 
@@ -482,6 +493,8 @@ class GigasetelementsClientAPI:
             for item in self._elements_data.json()["bs01"][0]["subelements"]:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
+                    if sensor_type_name in BUTTON_PRESS_MAP:
+                        sensor_attributes["press"] = button_press
 
         if sensor_state:
             self._dashboard_data = self._do_request(

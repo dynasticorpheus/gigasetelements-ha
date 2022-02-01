@@ -29,8 +29,9 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
-    for mode in SWITCH_TYPE:
-        add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
+    if client._alarm_switch:
+        for mode in SWITCH_TYPE:
+            add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
 
     for switch in set(SWITCH_NAME.values()):
         sensor_list = client.get_sensor_list(switch, SWITCH_NAME)

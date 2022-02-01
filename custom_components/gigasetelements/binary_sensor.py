@@ -98,7 +98,7 @@ class GigasetelementsSensor(BinarySensorEntity):
             "window",
         ]:
             self._sensor_state, self._sensor_attributes = self._client.get_event_detected(
-                sensor_id=self._id
+                sensor_id=self._id, sensor_type_name=self._type_name
             )
             if not self._sensor_state and self._type_name in [
                 "door",
