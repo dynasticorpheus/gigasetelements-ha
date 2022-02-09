@@ -111,6 +111,7 @@ class GigasetelementsSwitch(SwitchEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._icon = "mdi:lock-open-outline"
         self._state = STATE_ALARM_DISARMED
+        self._target_state = STATE_ALARM_DISARMED
         self._mode = mode
         self._client = client
         self.update()
@@ -142,7 +143,7 @@ class GigasetelementsSwitch(SwitchEntity):
         if self._type_name == "panic":
             self._state = self._client.get_panic_alarm()
         else:
-            self._state = self._client.get_alarm_status(refresh=False)
+            self._state, self._target_state = self._client.get_alarm_status(refresh=False)
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
         self._icon = DEVICE_ICON_MAP[self._state]
@@ -152,7 +153,7 @@ class GigasetelementsSwitch(SwitchEntity):
         if self._type_name == "panic":
             return self._state == STATE_ON
         else:
-            return self._client.target_state == self._mode
+            return self._target_state == self._mode
 
     @property
     def extra_state_attributes(self):

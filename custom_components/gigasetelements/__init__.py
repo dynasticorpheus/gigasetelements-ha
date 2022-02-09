@@ -17,8 +17,9 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_SWITCHES,
     CONF_USERNAME,
+    STATE_ALARM_ARMING,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_PENDING,
+    STATE_ALARM_DISARMING,
     STATE_ALARM_TRIGGERED,
     STATE_IDLE,
     STATE_OFF,
@@ -33,7 +34,6 @@ from .const import (
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
     HEADER_GSE,
-    PENDING_STATE_THRESHOLD,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
@@ -108,8 +108,8 @@ class GigasetelementsClientAPI:
         self._alarm_switch = alarm_switch
         self._code = code
         self._code_arm_required = code_arm_required
-        self._pending_time = 0
-        self._target_state = 0
+        self._mode_transition = False
+        self._target_state = STATE_ALARM_DISARMED
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._last_event = str(int(time.time()) * 1000)
@@ -165,9 +165,7 @@ class GigasetelementsClientAPI:
 
     def get_alarm_status(self, refresh=True):
 
-        if not refresh:
-            return self._state
-        else:
+        if refresh:
             if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
@@ -176,10 +174,22 @@ class GigasetelementsClientAPI:
             self._event_data = self._do_request(
                 "GET", URL_GSE_API + "/v2/me/events?from_ts=" + self._last_event
             )
+        else:
+            return self._state, self._target_state
+
+        self._mode_transition = self._basestation_data.json()[0]["intrusion_settings"][
+            "modeTransitionInProgress"
+        ]
 
         self._state = list(DEVICE_MODE_MAP.keys())[
             list(DEVICE_MODE_MAP.values()).index(
                 self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+            )
+        ]
+
+        self._target_state = list(DEVICE_MODE_MAP.keys())[
+            list(DEVICE_MODE_MAP.values()).index(
+                self._basestation_data.json()[0]["intrusion_settings"]["requestedMode"]
             )
         ]
 
@@ -190,27 +200,14 @@ class GigasetelementsClientAPI:
         except (KeyError, ValueError):
             pass
 
-        if self._target_state == 0:
-            self._target_state = self._state
-
         _LOGGER.debug("Alarm state: %s, target alarm state: %s", self._state, self._target_state)
 
-        diff = time.time() - self._pending_time
+        if self._mode_transition:
+            if self._target_state == STATE_ALARM_DISARMED:
+                return STATE_ALARM_DISARMING, self._target_state
+            return STATE_ALARM_ARMING, self._target_state
 
-        if self._state != STATE_ALARM_TRIGGERED:
-            if self._state == self._target_state:
-                self._pending_time = time.time()
-                return self._state
-            elif diff > PENDING_STATE_THRESHOLD:
-                self._target_state = self._state
-                _LOGGER.warning(
-                    "Pending time threshold exceeded, sync alarm target state: %s",
-                    self._target_state,
-                )
-            else:
-                return STATE_ALARM_PENDING
-
-        return self._state
+        return self._state, self._target_state
 
     def get_sensor_list(self, sensor_type, sensor_list):
 
@@ -416,10 +413,6 @@ class GigasetelementsClientAPI:
 
         _LOGGER.info("Setting alarm panel to %s", action)
 
-        self._pending_time = time.time()
-        self._target_state = action
-        self._state = STATE_ALARM_PENDING
-
         switch = {"intrusion_settings": {"active_mode": DEVICE_MODE_MAP[action]}}
         payload = json.dumps(switch)
         self._do_request("POST", URL_GSE_API + "/v1/me/basestations/" + self._property_id, payload)
@@ -504,7 +497,3 @@ class GigasetelementsClientAPI:
         _LOGGER.debug("Sensor %s state: %s", sensor_id, sensor_state)
 
         return sensor_state, sensor_attributes
-
-    @property
-    def target_state(self):
-        return self._target_state

@@ -20,7 +20,6 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_PENDING,
 )
 
 from .const import STATE_UPDATE_INTERVAL
@@ -88,14 +87,13 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         return self._code_arm_required
 
     def update(self):
-        self._state = self._client.get_alarm_status()
+        self._state, _ = self._client.get_alarm_status()
 
     def alarm_disarm(self, code=None):
         if not self._validate_code(code, STATE_ALARM_DISARMED):
             return
 
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
-        self._state = STATE_ALARM_DISARMED
 
     def alarm_arm_home(self, code=None):
 
@@ -103,7 +101,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_HOME)
-        self._state = STATE_ALARM_PENDING
 
     def alarm_arm_away(self, code=None):
 
@@ -111,7 +108,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
-        self._state = STATE_ALARM_PENDING
 
     def alarm_arm_night(self, code=None):
 
@@ -119,7 +115,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)
-        self._state = STATE_ALARM_PENDING
 
     def _validate_code(self, code, state):
         if self._code is None:
