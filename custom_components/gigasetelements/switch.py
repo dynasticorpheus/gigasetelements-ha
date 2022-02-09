@@ -50,7 +50,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._state = STATE_OFF
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._sensor_attributes = {}
         self._ts = 0
         self.update()
@@ -91,7 +91,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return f"{self._property_id}.{self._id}"
 
     @property
     def device_class(self):
@@ -152,8 +152,7 @@ class GigasetelementsSwitch(SwitchEntity):
     def is_on(self):
         if self._type_name == "panic":
             return self._state == STATE_ON
-        else:
-            return self._target_state == self._mode
+        return self._target_state == self._mode
 
     @property
     def extra_state_attributes(self):

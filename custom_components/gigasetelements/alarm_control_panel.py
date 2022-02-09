@@ -46,7 +46,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._name = name
         self._state = STATE_ALARM_DISARMED
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._code = self._client._code
         self._code_arm_required = self._client._code_arm_required
         self.update()
@@ -72,7 +72,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
     @property
     def unique_id(self):
-        return "%s" % (self._property_id.lower())
+        return f"{self._property_id}"
 
     @property
     def code_format(self):

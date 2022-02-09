@@ -386,18 +386,18 @@ class GigasetelementsClientAPI:
 
             for item in self._dashboard_data.json()["result"]["recentHomecomings"]:
                 try:
-                    ts = int(item["ts"]) / 1000
+                    time_stamp = int(item["ts"]) / 1000
                     sensor_attributes["recent_homecoming"] = str(
-                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                        datetime.fromtimestamp(time_stamp).astimezone().isoformat()
                     )
                 except (KeyError, ValueError):
                     pass
 
             for item in self._dashboard_data.json()["result"]["recentHomeleavings"]:
                 try:
-                    ts = int(item["ts"]) / 1000
+                    time_stamp = int(item["ts"]) / 1000
                     sensor_attributes["recent_homeleaving"] = str(
-                        datetime.fromtimestamp(ts).astimezone().isoformat()
+                        datetime.fromtimestamp(time_stamp).astimezone().isoformat()
                     )
                 except (KeyError, ValueError):
                     pass

@@ -44,7 +44,7 @@ class GigasetelementsSensor(Entity):
         self._sensor_state = ""
         self._sensor_attributes = {}
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self.update()
 
         _LOGGER.info("Initialized sensor.%s", self._name)
@@ -55,7 +55,7 @@ class GigasetelementsSensor(Entity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return "{self._property_id}.{self._id}"
 
     @property
     def extra_state_attributes(self):
@@ -69,8 +69,7 @@ class GigasetelementsSensor(Entity):
     def unit_of_measurement(self):
         if self._type_name in ["thermostat", "climate"]:
             return DEVICE_UOM_MAP[self._type_name]
-        else:
-            return None
+        return None
 
     @property
     def state(self):

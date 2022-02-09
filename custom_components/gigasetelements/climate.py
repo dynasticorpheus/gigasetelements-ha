@@ -52,7 +52,7 @@ class GigasetelementsThermostat(ClimateEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._sensor_attributes = {}
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._current_temperature = None
         self._target_temperature = None
         self._current_operation_mode = None
@@ -66,7 +66,7 @@ class GigasetelementsThermostat(ClimateEntity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return f"{self._property_id}.{self._id}"
 
     @property
     def extra_state_attributes(self):
