@@ -1,9 +1,10 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import timedelta
 import logging
 import re
+
+from datetime import timedelta
 
 from homeassistant.components.alarm_control_panel import (
     FORMAT_NUMBER,

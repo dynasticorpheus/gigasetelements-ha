@@ -1,14 +1,15 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import datetime
 import json
 import logging
 import time
+
+from datetime import datetime
 from urllib.parse import urlparse
 
+import homeassistant.helpers.config_validation as cv
 import requests
-from requests.packages.urllib3.util.retry import Retry
 import voluptuous as vol
 
 from homeassistant.const import (
@@ -26,7 +27,7 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNKNOWN,
 )
-import homeassistant.helpers.config_validation as cv
+from requests.packages.urllib3.util.retry import Retry
 
 from .const import (
     AUTH_GSE_EXPIRE,
