@@ -1,26 +1,21 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import timedelta
 import logging
 import re
 
+from datetime import timedelta
+
 from homeassistant.components.alarm_control_panel import (
-    FORMAT_NUMBER,
-    FORMAT_TEXT,
     AlarmControlPanelEntity,
-)
-from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_HOME,
-    SUPPORT_ALARM_ARM_NIGHT,
+    AlarmControlPanelEntityFeature,
+    CodeFormat,
 )
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_PENDING,
 )
 
 from .const import STATE_UPDATE_INTERVAL
@@ -47,7 +42,7 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._name = name
         self._state = STATE_ALARM_DISARMED
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._code = self._client._code
         self._code_arm_required = self._client._code_arm_required
         self.update()
@@ -61,7 +56,11 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
     @property
     def supported_features(self) -> int:
-        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
+        return (
+            AlarmControlPanelEntityFeature.ARM_HOME
+            | AlarmControlPanelEntityFeature.ARM_AWAY
+            | AlarmControlPanelEntityFeature.ARM_NIGHT
+        )
 
     @property
     def state(self):
@@ -73,29 +72,28 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
     @property
     def unique_id(self):
-        return "%s" % (self._property_id.lower())
+        return f"{self._property_id}"
 
     @property
     def code_format(self):
         if self._code is None:
             return None
         if isinstance(self._code, str) and re.search("^\\d+$", self._code):
-            return FORMAT_NUMBER
-        return FORMAT_TEXT
+            return CodeFormat.NUMBER
+        return CodeFormat.TEXT
 
     @property
     def code_arm_required(self):
         return self._code_arm_required
 
     def update(self):
-        self._state = self._client.get_alarm_status()
+        self._state, _ = self._client.get_alarm_status()
 
     def alarm_disarm(self, code=None):
         if not self._validate_code(code, STATE_ALARM_DISARMED):
             return
 
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
-        self._state = STATE_ALARM_DISARMED
 
     def alarm_arm_home(self, code=None):
 
@@ -103,7 +101,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_HOME)
-        self._state = STATE_ALARM_PENDING
 
     def alarm_arm_away(self, code=None):
 
@@ -111,7 +108,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
-        self._state = STATE_ALARM_PENDING
 
     def alarm_arm_night(self, code=None):
 
@@ -119,7 +115,6 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)
-        self._state = STATE_ALARM_PENDING
 
     def _validate_code(self, code, state):
         if self._code is None:

@@ -41,8 +41,9 @@ DEVICE_CLASS_MAP = {
 
 DEVICE_ICON_MAP = {
     "armed_away": "mdi:shield-key",
-    "armed_home": "mdi:shield-half-full",
-    "armed_night": "mdi:shield-half-full",
+    "armed_home": "mdi:shield-home",
+    "armed_night": "mdi:shield-moon",
+    "arming": "mdi:shield-sync",
     "base": "mdi:shield-check",
     "base_green": "mdi:shield-check",
     "base_orange": "mdi:shield",
@@ -50,6 +51,7 @@ DEVICE_ICON_MAP = {
     "button": "mdi:gesture-tap-hold",
     "button_event": "mdi:gesture-double-tap",
     "disarmed": "mdi:shield-off",
+    "disarming": "mdi:shield-sync",
     "off": "mdi:shield-off",
     "on": "mdi:shield-alert",
     "pending": "mdi:shield-edit",
@@ -98,8 +100,6 @@ HEADER_GSE = {
     "content-type": "application/json; charset=UTF-8",
     "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
 }
-
-PENDING_STATE_THRESHOLD = 10
 
 SENSOR_NAME = {
     "bs01": "base",

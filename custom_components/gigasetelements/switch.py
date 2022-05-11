@@ -1,8 +1,9 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import datetime, timedelta
 import logging
+
+from datetime import datetime, timedelta
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import STATE_ALARM_DISARMED, STATE_OFF, STATE_ON
@@ -50,7 +51,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._state = STATE_OFF
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._sensor_attributes = {}
         self._ts = 0
         self.update()
@@ -91,7 +92,7 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return f"{self._property_id}.{self._id}"
 
     @property
     def device_class(self):
@@ -111,6 +112,7 @@ class GigasetelementsSwitch(SwitchEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._icon = "mdi:lock-open-outline"
         self._state = STATE_ALARM_DISARMED
+        self._target_state = STATE_ALARM_DISARMED
         self._mode = mode
         self._client = client
         self.update()
@@ -142,7 +144,7 @@ class GigasetelementsSwitch(SwitchEntity):
         if self._type_name == "panic":
             self._state = self._client.get_panic_alarm()
         else:
-            self._state = self._client.get_alarm_status(refresh=False)
+            self._state, self._target_state = self._client.get_alarm_status(refresh=False)
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
         self._icon = DEVICE_ICON_MAP[self._state]
@@ -151,8 +153,7 @@ class GigasetelementsSwitch(SwitchEntity):
     def is_on(self):
         if self._type_name == "panic":
             return self._state == STATE_ON
-        else:
-            return self._client.target_state == self._mode
+        return self._target_state == self._mode
 
     @property
     def extra_state_attributes(self):

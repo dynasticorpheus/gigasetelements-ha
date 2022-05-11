@@ -1,15 +1,15 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import timedelta
 import logging
+
+from datetime import timedelta
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    HVAC_MODE_HEAT,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 
@@ -52,7 +52,7 @@ class GigasetelementsThermostat(ClimateEntity):
         self._type_name = name.rsplit("_", 2)[1]
         self._sensor_attributes = {}
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self._current_temperature = None
         self._target_temperature = None
         self._current_operation_mode = None
@@ -66,7 +66,7 @@ class GigasetelementsThermostat(ClimateEntity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return f"{self._property_id}.{self._id}"
 
     @property
     def extra_state_attributes(self):
@@ -74,21 +74,21 @@ class GigasetelementsThermostat(ClimateEntity):
 
     @property
     def supported_features(self):
-        return SUPPORT_TARGET_TEMPERATURE
+        return ClimateEntityFeature.TARGET_TEMPERATURE
 
     @property
     def hvac_mode(self):
-        return HVAC_MODE_HEAT
+        return HVACMode.HEAT
 
     @property
     def hvac_modes(self):
-        return [HVAC_MODE_HEAT]
+        return [HVACMode.HEAT]
 
     @property
     def hvac_action(self):
         if self._current_temperature < self._target_temperature:
-            return CURRENT_HVAC_HEAT
-        return CURRENT_HVAC_IDLE
+            return HVACAction.HEATING
+        return HVACAction.IDLE
 
     @property
     def target_temperature_step(self):

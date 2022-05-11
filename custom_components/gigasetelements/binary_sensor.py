@@ -1,8 +1,9 @@
 """
 Gigaset Elements platform that offers a control over alarm status.
 """
-from datetime import timedelta
 import logging
+
+from datetime import timedelta
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
@@ -47,7 +48,7 @@ class GigasetelementsSensor(BinarySensorEntity):
         self._sensor_state = False
         self._sensor_attributes = {}
         self._client = client
-        self._property_id = self._client._property_id
+        self._property_id = self._client._property_id.lower()
         self.update()
 
         _LOGGER.info("Initialized binary_sensor.%s", self._name)
@@ -66,7 +67,7 @@ class GigasetelementsSensor(BinarySensorEntity):
 
     @property
     def unique_id(self):
-        return "%s.%s" % (self._property_id.lower(), self._id)
+        return f"{self._property_id}.{self._id}"
 
     @property
     def device_class(self):
