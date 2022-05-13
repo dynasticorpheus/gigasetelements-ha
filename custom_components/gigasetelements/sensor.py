@@ -56,7 +56,7 @@ class GigasetelementsSensor(Entity):
 
     @property
     def unique_id(self):
-        return "{self._property_id}.{self._id}"
+        return f"{self._property_id}.{self._id}"
 
     @property
     def extra_state_attributes(self):
