@@ -1,5 +1,7 @@
 """Constants used by Gigaset Elements custom component."""
 
+API_CALLS_ALLOWED = False
+
 AUTH_GSE_EXPIRE = 14400
 
 BINARY_SENSOR_NAME = {
@@ -98,8 +100,16 @@ DEVICE_UOM_MAP = {
 
 HEADER_GSE = {
     "content-type": "application/json; charset=UTF-8",
-    "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
+    "user-agent": "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.15 Mobile Safari/537.36",
 }
+
+PLATFORMS = [
+    "alarm_control_panel",
+    "binary_sensor",
+    "climate",
+    "sensor",
+    "switch",
+]
 
 SENSOR_NAME = {
     "bs01": "base",

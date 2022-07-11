@@ -29,12 +29,12 @@ PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
-    add_devices([GigasetelementsAlarmPanel(name, client)])
+    async_add_devices([GigasetelementsAlarmPanel(name, client)])
 
 
 class GigasetelementsAlarmPanel(AlarmControlPanelEntity):

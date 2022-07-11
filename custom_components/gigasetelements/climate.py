@@ -30,7 +30,7 @@ PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
@@ -38,7 +38,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for thermostat in set(THERMOSTAT_NAME.values()):
         thermostat_list = client.get_sensor_list(thermostat, THERMOSTAT_NAME)
         for thermostat_id in thermostat_list:
-            add_devices(
+            async_add_devices(
                 [GigasetelementsThermostat(name + "_" + thermostat + "_" + thermostat_id, client)]
             )
 

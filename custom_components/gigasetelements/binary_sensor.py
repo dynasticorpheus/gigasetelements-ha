@@ -24,7 +24,7 @@ PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
@@ -33,9 +33,11 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         sensor_list = client.get_sensor_list(sensor, BINARY_SENSOR_NAME)
         for sensor_id in sensor_list:
             if sensor == "camera":
-                add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
+                async_add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
             else:
-                add_devices([GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)])
+                async_add_devices(
+                    [GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)]
+                )
 
 
 class GigasetelementsSensor(BinarySensorEntity):
