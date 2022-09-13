@@ -261,16 +261,30 @@ class GigasetelementsClientAPI:
             attr["custom_name"] = item.get(
                 "friendlyName", self._basestation_data.json()[0]["friendly_name"]
             )
+            attr["duration"] = item.get("runtimeConfiguration", {}).get("durationInSeconds")
             attr["firmware_status"] = item.get(
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
             attr["humidity"] = item.get("states", {}).get("humidity")
+            attr["power_measurement"] = item.get("states", {}).get("momentaryPowerMeasurement")
             attr["pressure"] = item.get("states", {}).get("pressure")
             attr["setpoint"] = item.get("states", {}).get("setPoint")
             attr["temperature"] = item.get("states", {}).get("temperature")
             attr["test_required"] = item.get("testRequired", None)
             attr["unmounted"] = item.get("unmounted", None)
+
         except (KeyError, ValueError):
+            pass
+
+        try:
+            attr["start_time"] = (
+                datetime.fromtimestamp(
+                    item.get("runtimeConfiguration", {}).get("startTimestampInSeconds")
+                )
+                .astimezone()
+                .isoformat()
+            )
+        except:
             pass
 
         return {k: v for k, v in attr.items() if v is not None}
