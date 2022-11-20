@@ -14,14 +14,13 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 
 from .const import (
+    DOMAIN,
     STATE_UPDATE_INTERVAL,
     TARGET_TEMP_HIGH,
     TARGET_TEMP_LOW,
     TARGET_TEMP_STEP,
     THERMOSTAT_NAME,
 )
-
-DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
@@ -41,6 +40,8 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
             async_add_devices(
                 [GigasetelementsThermostat(name + "_" + thermostat + "_" + thermostat_id, client)]
             )
+
+    _LOGGER.debug("Climate platform loaded")
 
 
 class GigasetelementsThermostat(ClimateEntity):

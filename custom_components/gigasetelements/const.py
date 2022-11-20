@@ -26,6 +26,8 @@ BUTTON_PRESS_MAP = {
     "button4": "very_long",
 }
 
+CONF_CODE_ARM_REQUIRED = "code_arm_required"
+
 DEVICE_CLASS_MAP = {
     "base": None,
     "button": "motion",
@@ -98,10 +100,14 @@ DEVICE_UOM_MAP = {
     "thermostat": "°C",
 }
 
+DOMAIN = "gigasetelements"
+
 HEADER_GSE = {
     "content-type": "application/json; charset=UTF-8",
     "user-agent": "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.15 Mobile Safari/537.36",
 }
+
+ISSUE_URL = "https://github.com/dynasticorpheus/gigasetelements-ha/issues"
 
 PLATFORMS = [
     "alarm_control_panel",
@@ -145,3 +151,17 @@ THERMOSTAT_NAME = {
 URL_GSE_API = "https://api.gigaset-elements.de/api"
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
+
+VERSION = "2022.11.0b0"
+
+STARTUP = """
+-------------------------------------------------------------------
+{}
+Version: {}
+This is a custom component
+If you have any issues with this you need to open an issue here:
+{}
+-------------------------------------------------------------------
+""".format(
+    DOMAIN, VERSION, ISSUE_URL
+)

@@ -18,9 +18,10 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
 )
 
-from .const import STATE_UPDATE_INTERVAL
-
-DOMAIN = "gigasetelements"
+from .const import (
+    DOMAIN,
+    STATE_UPDATE_INTERVAL,
+)
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
@@ -35,6 +36,8 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
     name = hass.data[DOMAIN]["name"]
 
     async_add_devices([GigasetelementsAlarmPanel(name, client)])
+
+    _LOGGER.debug("Alarm control panel platform loaded")
 
 
 class GigasetelementsAlarmPanel(AlarmControlPanelEntity):

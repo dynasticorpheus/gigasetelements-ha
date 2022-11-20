@@ -11,11 +11,10 @@ from .const import (
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
     DEVICE_UOM_MAP,
+    DOMAIN,
     SENSOR_NAME,
     STATE_UPDATE_INTERVAL,
 )
-
-DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
@@ -35,6 +34,8 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
             async_add_devices(
                 [GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)]
             )
+
+    _LOGGER.debug("Sensor platform loaded")
 
 
 class GigasetelementsSensor(Entity):

@@ -11,12 +11,11 @@ from homeassistant.const import STATE_ALARM_DISARMED, STATE_OFF, STATE_ON
 from .const import (
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
+    DOMAIN,
     STATE_UPDATE_INTERVAL,
     SWITCH_NAME,
     SWITCH_TYPE,
 )
-
-DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
@@ -42,6 +41,8 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
             async_add_devices(
                 [GigasetelementsPlugSwitch(hass, name + "_" + switch + "_" + switch_id, client)]
             )
+
+    _LOGGER.debug("Switch platform loaded")
 
 
 class GigasetelementsPlugSwitch(SwitchEntity):

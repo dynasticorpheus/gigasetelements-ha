@@ -37,10 +37,13 @@ from .const import (
     API_CALLS_ALLOWED,
     AUTH_GSE_EXPIRE,
     BUTTON_PRESS_MAP,
+    CONF_CODE_ARM_REQUIRED,
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
+    DOMAIN,
     HEADER_GSE,
     PLATFORMS,
+    STARTUP,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
@@ -51,9 +54,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_CODE_ARM_REQUIRED = "code_arm_required"
-
-DOMAIN = "gigasetelements"
+_LOGGER.info(STARTUP)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -102,6 +103,8 @@ def setup(hass, config):
     time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
 
+    _LOGGER.debug("Initializing %s client API", DOMAIN)
+
     client = GigasetelementsClientAPI(
         username, password, code, code_arm_required, time_zone, alarm_switch
     )
@@ -109,6 +112,7 @@ def setup(hass, config):
     hass.data[DOMAIN] = {"client": client, "name": name}
 
     for platform in PLATFORMS:
+        _LOGGER.debug("Load platform %s", platform)
         hass.async_create_task(async_load_platform(hass, platform, DOMAIN, {}, config))
 
     return True
