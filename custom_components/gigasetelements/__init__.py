@@ -18,6 +18,8 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_SWITCHES,
     CONF_USERNAME,
+    EVENT_HOMEASSISTANT_STARTED,
+    EVENT_HOMEASSISTANT_STOP,
     STATE_ALARM_ARMING,
     STATE_ALARM_DISARMED,
     STATE_ALARM_DISARMING,
@@ -27,14 +29,21 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNKNOWN,
 )
+from homeassistant.core import CoreState
+from homeassistant.helpers.discovery import async_load_platform
 from requests.packages.urllib3.util.retry import Retry
 
 from .const import (
+    API_CALLS_ALLOWED,
     AUTH_GSE_EXPIRE,
     BUTTON_PRESS_MAP,
+    CONF_CODE_ARM_REQUIRED,
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
+    DOMAIN,
     HEADER_GSE,
+    PLATFORMS,
+    STARTUP,
     STATE_HEALTH_GREEN,
     STATE_HEALTH_ORANGE,
     STATE_HEALTH_RED,
@@ -45,9 +54,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_CODE_ARM_REQUIRED = "code_arm_required"
-
-DOMAIN = "gigasetelements"
+_LOGGER.info(STARTUP)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -77,6 +84,16 @@ session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retry_strate
 
 
 def setup(hass, config):
+    def toggle_api_updates(event):
+        global API_CALLS_ALLOWED
+        if hass.state == CoreState.running:
+            API_CALLS_ALLOWED = True
+        else:
+            API_CALLS_ALLOWED = False
+        _LOGGER.debug("API calls enabled: " + str(API_CALLS_ALLOWED))
+
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, toggle_api_updates)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, toggle_api_updates)
 
     username = config[DOMAIN].get(CONF_USERNAME)
     password = config[DOMAIN].get(CONF_PASSWORD)
@@ -86,16 +103,17 @@ def setup(hass, config):
     time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
 
+    _LOGGER.debug("Initializing %s client API", DOMAIN)
+
     client = GigasetelementsClientAPI(
         username, password, code, code_arm_required, time_zone, alarm_switch
     )
 
     hass.data[DOMAIN] = {"client": client, "name": name}
-    hass.helpers.discovery.load_platform("alarm_control_panel", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("binary_sensor", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("climate", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
-    hass.helpers.discovery.load_platform("switch", DOMAIN, {}, config)
+
+    for platform in PLATFORMS:
+        _LOGGER.debug("Load platform %s", platform)
+        hass.async_create_task(async_load_platform(hass, platform, DOMAIN, {}, config))
 
     return True
 
@@ -166,7 +184,7 @@ class GigasetelementsClientAPI:
 
     def get_alarm_status(self, refresh=True):
 
-        if refresh:
+        if API_CALLS_ALLOWED and refresh:
             if time.time() - self._last_authenticated > AUTH_GSE_EXPIRE:
                 self._last_authenticated = self._do_authorisation()
             self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
@@ -247,16 +265,30 @@ class GigasetelementsClientAPI:
             attr["custom_name"] = item.get(
                 "friendlyName", self._basestation_data.json()[0]["friendly_name"]
             )
+            attr["duration"] = item.get("runtimeConfiguration", {}).get("durationInSeconds")
             attr["firmware_status"] = item.get(
                 "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
             )
             attr["humidity"] = item.get("states", {}).get("humidity")
+            attr["power_measurement"] = item.get("states", {}).get("momentaryPowerMeasurement")
             attr["pressure"] = item.get("states", {}).get("pressure")
             attr["setpoint"] = item.get("states", {}).get("setPoint")
             attr["temperature"] = item.get("states", {}).get("temperature")
             attr["test_required"] = item.get("testRequired", None)
             attr["unmounted"] = item.get("unmounted", None)
+
         except (KeyError, ValueError):
+            pass
+
+        try:
+            attr["start_time"] = (
+                datetime.fromtimestamp(
+                    item.get("runtimeConfiguration", {}).get("startTimestampInSeconds")
+                )
+                .astimezone()
+                .isoformat()
+            )
+        except:
             pass
 
         return {k: v for k, v in attr.items() if v is not None}
@@ -490,7 +522,7 @@ class GigasetelementsClientAPI:
                     if sensor_type_name in BUTTON_PRESS_MAP:
                         sensor_attributes["press"] = button_press
 
-        if sensor_state:
+        if API_CALLS_ALLOWED and sensor_state:
             self._dashboard_data = self._do_request(
                 "GET", URL_GSE_API + "/v1/me/events/dashboard?timezone=" + self._time_zone
             )

@@ -1,5 +1,7 @@
 """Constants used by Gigaset Elements custom component."""
 
+API_CALLS_ALLOWED = False
+
 AUTH_GSE_EXPIRE = 14400
 
 BINARY_SENSOR_NAME = {
@@ -24,19 +26,21 @@ BUTTON_PRESS_MAP = {
     "button4": "very_long",
 }
 
+CONF_CODE_ARM_REQUIRED = "code_arm_required"
+
 DEVICE_CLASS_MAP = {
     "base": None,
-    "button": "motion",
-    "climate": "temperature",
-    "door": "door",
-    "motion": "motion",
-    "plug": "outlet",
+    "button": "BinarySensorDeviceClass.MOTION",
+    "climate": "SensorDeviceClass.TEMPERATURE",
+    "door": "BinarySensorDeviceClass.DOOR",
+    "motion": "BinarySensorDeviceClass.MOTION",
+    "plug": "SwitchDeviceClass.OUTLET",
     "siren": None,
-    "smoke": "smoke",
-    "thermostat": "temperature",
-    "universal": "door",
-    "water": "moisture",
-    "window": "window",
+    "smoke": "BinarySensorDeviceClass.SMOKE",
+    "thermostat": "SensorDeviceClass.TEMPERATURE",
+    "universal": "BinarySensorDeviceClass.DOOR",
+    "water": "BinarySensorDeviceClass.MOISTURE",
+    "window": "BinarySensorDeviceClass.WINDOW",
 }
 
 DEVICE_ICON_MAP = {
@@ -96,10 +100,22 @@ DEVICE_UOM_MAP = {
     "thermostat": "°C",
 }
 
+DOMAIN = "gigasetelements"
+
 HEADER_GSE = {
     "content-type": "application/json; charset=UTF-8",
-    "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
+    "user-agent": "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.15 Mobile Safari/537.36",
 }
+
+ISSUE_URL = "https://github.com/dynasticorpheus/gigasetelements-ha/issues"
+
+PLATFORMS = [
+    "alarm_control_panel",
+    "binary_sensor",
+    "climate",
+    "sensor",
+    "switch",
+]
 
 SENSOR_NAME = {
     "bs01": "base",
@@ -135,3 +151,17 @@ THERMOSTAT_NAME = {
 URL_GSE_API = "https://api.gigaset-elements.de/api"
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
+
+VERSION = "2023.1.0"
+
+STARTUP = """
+-------------------------------------------------------------------
+{}
+Version: {}
+This is a custom component
+If you have any issues with this you need to open an issue here:
+{}
+-------------------------------------------------------------------
+""".format(
+    DOMAIN, VERSION, ISSUE_URL
+)

@@ -5,18 +5,17 @@ import logging
 
 from datetime import datetime, timedelta
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import STATE_ALARM_DISARMED, STATE_OFF, STATE_ON
 
 from .const import (
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
+    DOMAIN,
     STATE_UPDATE_INTERVAL,
     SWITCH_NAME,
     SWITCH_TYPE,
 )
-
-DOMAIN = "gigasetelements"
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
@@ -25,21 +24,25 @@ PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
 
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
     if client._alarm_switch:
         for mode in SWITCH_TYPE:
-            add_devices([GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])])
+            async_add_devices(
+                [GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])]
+            )
 
     for switch in set(SWITCH_NAME.values()):
         sensor_list = client.get_sensor_list(switch, SWITCH_NAME)
         for switch_id in sensor_list:
-            add_devices(
+            async_add_devices(
                 [GigasetelementsPlugSwitch(hass, name + "_" + switch + "_" + switch_id, client)]
             )
+
+    _LOGGER.debug("Switch platform loaded")
 
 
 class GigasetelementsPlugSwitch(SwitchEntity):
