@@ -5,6 +5,7 @@ import logging
 
 from datetime import timedelta
 
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import Entity
 
 from .const import (

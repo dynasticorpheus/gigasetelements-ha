@@ -30,17 +30,17 @@ CONF_CODE_ARM_REQUIRED = "code_arm_required"
 
 DEVICE_CLASS_MAP = {
     "base": None,
-    "button": "motion",
-    "climate": "temperature",
-    "door": "door",
-    "motion": "motion",
-    "plug": "outlet",
+    "button": "BinarySensorDeviceClass.MOTION",
+    "climate": "SensorDeviceClass.TEMPERATURE",
+    "door": "BinarySensorDeviceClass.DOOR",
+    "motion": "BinarySensorDeviceClass.MOTION",
+    "plug": "SwitchDeviceClass.OUTLET",
     "siren": None,
-    "smoke": "smoke",
-    "thermostat": "temperature",
-    "universal": "door",
-    "water": "moisture",
-    "window": "window",
+    "smoke": "BinarySensorDeviceClass.SMOKE",
+    "thermostat": "SensorDeviceClass.TEMPERATURE",
+    "universal": "BinarySensorDeviceClass.DOOR",
+    "water": "BinarySensorDeviceClass.MOISTURE",
+    "window": "BinarySensorDeviceClass.WINDOW",
 }
 
 DEVICE_ICON_MAP = {
