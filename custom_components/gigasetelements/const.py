@@ -1,5 +1,9 @@
 """Constants used by Gigaset Elements custom component."""
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.switch import SwitchDeviceClass
+
 API_CALLS_ALLOWED = False
 
 AUTH_GSE_EXPIRE = 14400
@@ -30,17 +34,17 @@ CONF_CODE_ARM_REQUIRED = "code_arm_required"
 
 DEVICE_CLASS_MAP = {
     "base": None,
-    "button": "BinarySensorDeviceClass.MOTION",
-    "climate": "SensorDeviceClass.TEMPERATURE",
-    "door": "BinarySensorDeviceClass.DOOR",
-    "motion": "BinarySensorDeviceClass.MOTION",
-    "plug": "SwitchDeviceClass.OUTLET",
+    "button": BinarySensorDeviceClass.MOTION,
+    "climate": SensorDeviceClass.TEMPERATURE,
+    "door": BinarySensorDeviceClass.DOOR,
+    "motion": BinarySensorDeviceClass.MOTION,
+    "plug": SwitchDeviceClass.OUTLET,
     "siren": None,
-    "smoke": "BinarySensorDeviceClass.SMOKE",
-    "thermostat": "SensorDeviceClass.TEMPERATURE",
-    "universal": "BinarySensorDeviceClass.DOOR",
-    "water": "BinarySensorDeviceClass.MOISTURE",
-    "window": "BinarySensorDeviceClass.WINDOW",
+    "smoke": BinarySensorDeviceClass.SMOKE,
+    "thermostat": SensorDeviceClass.TEMPERATURE,
+    "universal": BinarySensorDeviceClass.DOOR,
+    "water": BinarySensorDeviceClass.MOISTURE,
+    "window": BinarySensorDeviceClass.WINDOW,
 }
 
 DEVICE_ICON_MAP = {
@@ -152,7 +156,7 @@ URL_GSE_API = "https://api.gigaset-elements.de/api"
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
 
-VERSION = "2023.1.0"
+VERSION = "2023.1.1"
 
 STARTUP = """
 -------------------------------------------------------------------

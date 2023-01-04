@@ -5,7 +5,7 @@ import logging
 
 from datetime import timedelta
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import (
     BINARY_SENSOR_NAME,
