@@ -152,7 +152,7 @@ URL_GSE_API = "https://api.gigaset-elements.de/api"
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
 
-VERSION = "2022.11.0b0"
+VERSION = "2023.1.0"
 
 STARTUP = """
 -------------------------------------------------------------------
