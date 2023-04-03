@@ -274,7 +274,9 @@ class GigasetelementsClientAPI:
             attr["pressure"] = item.get("states", {}).get("pressure")
             attr["setpoint"] = item.get("states", {}).get("setPoint")
             attr["temperature"] = item.get("states", {}).get("temperature")
-            attr["test_required"] = item.get("testRequired", None)
+            attr["test_required"] = item.get(
+                "testRequired", item.get("states", {}).get("testRequired")
+            )
             attr["unmounted"] = item.get("unmounted", None)
 
         except (KeyError, ValueError):
