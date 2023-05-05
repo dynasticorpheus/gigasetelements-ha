@@ -85,10 +85,7 @@ session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retry_strate
 def setup(hass, config):
     def toggle_api_updates(event):
         global API_CALLS_ALLOWED
-        if hass.state == CoreState.running:
-            API_CALLS_ALLOWED = True
-        else:
-            API_CALLS_ALLOWED = False
+        API_CALLS_ALLOWED = hass.state == CoreState.running
         _LOGGER.debug("API calls enabled: " + str(API_CALLS_ALLOWED))
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, toggle_api_updates)
