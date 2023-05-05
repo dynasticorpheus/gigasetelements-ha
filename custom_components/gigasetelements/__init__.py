@@ -305,6 +305,7 @@ class GigasetelementsClientAPI:
                     elif item[sensor_attribute]:
                         sensor_state = True
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
+                    break
             except (KeyError, ValueError):
                 pass
 
@@ -346,6 +347,7 @@ class GigasetelementsClientAPI:
                     else:
                         plug_state = STATE_UNKNOWN
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
+                    break
             except (KeyError, ValueError):
                 pass
 
@@ -381,6 +383,7 @@ class GigasetelementsClientAPI:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
                     climate_state = round(float(sensor_attributes["temperature"]), 1)
                     sensor_attributes.pop("temperature")
+                    break
             except (KeyError, ValueError):
                 pass
 
