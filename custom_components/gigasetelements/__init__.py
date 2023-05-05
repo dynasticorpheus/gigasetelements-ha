@@ -82,7 +82,6 @@ retry_strategy = Retry(
 session = requests.Session()
 session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retry_strategy))
 
-
 def setup(hass, config):
     def toggle_api_updates(event):
         global API_CALLS_ALLOWED
@@ -132,10 +131,10 @@ class GigasetelementsClientAPI:
         self._state = STATE_ALARM_DISARMED
         self._health = STATE_HEALTH_GREEN
         self._last_event = str(int(time.time()) * 1000)
-        self._cloud = self._do_request("GET", URL_GSE_CLOUD)
+        self._cloud = self._do_request("GET", URL_GSE_CLOUD).json()
         self._last_authenticated = self._do_authorisation()
         self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
-        self._property_id = self._basestation_data.json()[0]["id"]
+        self._property_id = self._basestation_data[0]["id"]
         self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
         self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
         self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1")
@@ -168,12 +167,12 @@ class GigasetelementsClientAPI:
         else:
             _LOGGER.debug("API request: [%s] %s", response.status_code, urlparse(url).path)
 
-        return response
+        return response.json() if response.headers.get("content-type", "").startswith("application/json") else response
 
     def _do_authorisation(self):
 
-        if self._cloud.json()["isMaintenance"]:
-            _LOGGER.error("API maintenance: %s", self._cloud.json()["isMaintenance"])
+        if self._cloud["isMaintenance"]:
+            _LOGGER.error("API maintenance: %s", self._cloud["isMaintenance"])
         _LOGGER.info("Authenticating")
 
         payload = {"password": self._password, "email": self._username}
@@ -196,26 +195,26 @@ class GigasetelementsClientAPI:
         else:
             return self._state, self._target_state
 
-        self._mode_transition = self._basestation_data.json()[0]["intrusion_settings"][
+        self._mode_transition = self._basestation_data[0]["intrusion_settings"][
             "modeTransitionInProgress"
         ]
 
         self._state = list(DEVICE_MODE_MAP.keys())[
             list(DEVICE_MODE_MAP.values()).index(
-                self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+                self._basestation_data[0]["intrusion_settings"]["active_mode"]
             )
         ]
 
         self._target_state = list(DEVICE_MODE_MAP.keys())[
             list(DEVICE_MODE_MAP.values()).index(
-                self._basestation_data.json()[0]["intrusion_settings"]["requestedMode"]
+                self._basestation_data[0]["intrusion_settings"]["requestedMode"]
             )
         ]
 
         try:
-            if self._health_data.json()["statusMsgId"] in ["alarm.user", "system_intrusion"]:
+            if self._health_data["statusMsgId"] in ["alarm.user", "system_intrusion"]:
                 self._state = STATE_ALARM_TRIGGERED
-                _LOGGER.debug("Alarm trigger state: %s", self._health_data.json()["statusMsgId"])
+                _LOGGER.debug("Alarm trigger state: %s", self._health_data["statusMsgId"])
         except (KeyError, ValueError):
             pass
 
@@ -236,14 +235,14 @@ class GigasetelementsClientAPI:
             sensor_id_list.append(self._property_id.lower())
         elif sensor_type == "camera":
             try:
-                for item in self._camera_data.json():
+                for item in self._camera_data:
                     sensor_id_list.append(item["id"].lower())
             except (KeyError, ValueError):
                 pass
         else:
             for sensor_code, sensor_fullname in sensor_list.items():
                 if sensor_fullname == sensor_type:
-                    for item in self._basestation_data.json()[0]["sensors"]:
+                    for item in self._basestation_data[0]["sensors"]:
                         if item["type"] == sensor_code:
                             sensor_id_list.append(item["id"])
 
@@ -260,23 +259,21 @@ class GigasetelementsClientAPI:
             attr["calibration_status"] = item.get("calibrationStatus", None)
             attr["chamber_fail"] = item.get("smokeChamberFail", None)
             attr["connection_status"] = item.get(
-                "connectionStatus", self._basestation_data.json()[0]["status"]
+                "connectionStatus", self._basestation_data[0]["status"]
             )
             attr["custom_name"] = item.get(
-                "friendlyName", self._basestation_data.json()[0]["friendly_name"]
+                "friendlyName", self._basestation_data[0]["friendly_name"]
             )
             attr["duration"] = item.get("runtimeConfiguration", {}).get("durationInSeconds")
             attr["firmware_status"] = item.get(
-                "firmwareStatus", self._basestation_data.json()[0]["firmware_status"]
+                "firmwareStatus", self._basestation_data[0]["firmware_status"]
             )
             attr["humidity"] = item.get("states", {}).get("humidity")
             attr["power_measurement"] = item.get("states", {}).get("momentaryPowerMeasurement")
             attr["pressure"] = item.get("states", {}).get("pressure")
             attr["setpoint"] = item.get("states", {}).get("setPoint")
             attr["temperature"] = item.get("states", {}).get("temperature")
-            attr["test_required"] = item.get(
-                "testRequired", item.get("states", {}).get("testRequired")
-            )
+            attr["test_required"] = item.get("testRequired", item.get("states", {}).get("testRequired"))
             attr["unmounted"] = item.get("unmounted", None)
 
         except (KeyError, ValueError):
@@ -299,8 +296,7 @@ class GigasetelementsClientAPI:
 
         sensor_attributes = {}
         sensor_state = False
-
-        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+        for item in self._elements_data["bs01"][0]["subelements"]:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     if item[sensor_attribute] in ["tilted", "open", "online"]:
@@ -323,10 +319,10 @@ class GigasetelementsClientAPI:
 
         privacy_on = STATE_UNKNOWN
 
-        for item in self._basestation_data.json()[0]["intrusion_settings"]["modes"]:
+        for item in self._basestation_data[0]["intrusion_settings"]["modes"]:
             try:
                 privacy_on = item[
-                    self._basestation_data.json()[0]["intrusion_settings"]["active_mode"]
+                    self._basestation_data[0]["intrusion_settings"]["active_mode"]
                 ]["privacy_mode"]
             except (KeyError, ValueError):
                 pass
@@ -343,7 +339,7 @@ class GigasetelementsClientAPI:
         sensor_attributes = {}
         plug_state = STATE_UNKNOWN
 
-        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+        for item in self._elements_data["bs01"][0]["subelements"]:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     if item["states"]["relay"] == "off":
@@ -382,7 +378,7 @@ class GigasetelementsClientAPI:
         sensor_attributes = {}
         climate_state = STATE_UNKNOWN
 
-        for item in self._elements_data.json()["bs01"][0]["subelements"]:
+        for item in self._elements_data["bs01"][0]["subelements"]:
             try:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
@@ -400,26 +396,26 @@ class GigasetelementsClientAPI:
         sensor_attributes = {}
 
         try:
-            if self._health_data.json()["systemHealth"] == "green":
+            if self._health_data["systemHealth"] == "green":
                 self._health = STATE_HEALTH_GREEN
-            elif self._health_data.json()["systemHealth"] == "orange":
+            elif self._health_data["systemHealth"] == "orange":
                 self._health = STATE_HEALTH_ORANGE
-            elif self._health_data.json()["systemHealth"] == "red":
+            elif self._health_data["systemHealth"] == "red":
                 self._health = STATE_HEALTH_RED
             else:
                 self._health = STATE_UNKNOWN
 
             sensor_attributes = self.get_sensor_attributes(item={}, attr={})
             sensor_attributes["alarm_mode"] = self._state
-            sensor_attributes["today_events"] = self._dashboard_data.json()["result"][
+            sensor_attributes["today_events"] = self._dashboard_data["result"][
                 "recentEventsNumber"
             ]
-            sensor_attributes["today_recordings"] = self._dashboard_data.json()["result"][
+            sensor_attributes["today_recordings"] = self._dashboard_data["result"][
                 "recentEventCounts"
             ]["yc01.recording"]
             sensor_attributes["privacy_mode"] = str(self.get_privacy_state())
 
-            for item in self._dashboard_data.json()["result"]["recentHomecomings"]:
+            for item in self._dashboard_data["result"]["recentHomecomings"]:
                 try:
                     time_stamp = int(item["ts"]) / 1000
                     sensor_attributes["recent_homecoming"] = str(
@@ -428,7 +424,7 @@ class GigasetelementsClientAPI:
                 except (KeyError, ValueError):
                     pass
 
-            for item in self._dashboard_data.json()["result"]["recentHomeleavings"]:
+            for item in self._dashboard_data["result"]["recentHomeleavings"]:
                 try:
                     time_stamp = int(item["ts"]) / 1000
                     sensor_attributes["recent_homeleaving"] = str(
@@ -483,7 +479,7 @@ class GigasetelementsClientAPI:
     def get_panic_alarm(self):
 
         try:
-            if self._health_data.json()["statusMsgId"] == "alarm.user":
+            if self._health_data["statusMsgId"] == "alarm.user":
                 panic_state = STATE_ON
             else:
                 panic_state = STATE_OFF
@@ -500,7 +496,7 @@ class GigasetelementsClientAPI:
         sensor_state = False
         sensor_attributes = {}
 
-        for item in reversed(self._event_data.json()["events"]):
+        for item in reversed(self._event_data["events"]):
             try:
                 if item["type"] in DEVICE_TRIGGERS and item["source_id"].lower() == sensor_id:
                     self._last_event = str(int(item["ts"]) + 1)
@@ -514,11 +510,11 @@ class GigasetelementsClientAPI:
                 pass
 
         if len(sensor_id) == 12:
-            for item in self._elements_data.json()["yc01"]:
+            for item in self._elements_data["yc01"]:
                 if item["id"] == sensor_id.upper():
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
         else:
-            for item in self._elements_data.json()["bs01"][0]["subelements"]:
+            for item in self._elements_data["bs01"][0]["subelements"]:
                 if item["id"] == self._property_id + "." + sensor_id:
                     sensor_attributes = self.get_sensor_attributes(item, attr={})
                     if sensor_type_name in BUTTON_PRESS_MAP:
