@@ -14,6 +14,7 @@ import voluptuous as vol
 
 from homeassistant.const import (
     CONF_CODE,
+    CONF_MAC,
     CONF_NAME,
     CONF_PASSWORD,
     CONF_SWITCHES,
@@ -62,6 +63,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
+                vol.Optional(CONF_MAC): cv.string,
                 vol.Optional(CONF_NAME, default="gigaset_elements"): cv.string,
                 vol.Optional(CONF_SWITCHES, default=True): cv.boolean,
                 vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
@@ -93,6 +95,7 @@ def setup(hass, config):
 
     username = config[DOMAIN].get(CONF_USERNAME)
     password = config[DOMAIN].get(CONF_PASSWORD)
+    property_id = config[DOMAIN].get(CONF_MAC)
     code = config[DOMAIN].get(CONF_CODE)
     code_arm_required = config[DOMAIN].get(CONF_CODE_ARM_REQUIRED)
     alarm_switch = config[DOMAIN].get(CONF_SWITCHES)
@@ -102,7 +105,7 @@ def setup(hass, config):
     _LOGGER.debug("Initializing %s client API", DOMAIN)
 
     client = GigasetelementsClientAPI(
-        username, password, code, code_arm_required, time_zone, alarm_switch
+        username, password, property_id, code, code_arm_required, time_zone, alarm_switch
     )
 
     hass.data[DOMAIN] = {"client": client, "name": name}
@@ -115,7 +118,7 @@ def setup(hass, config):
 
 
 class GigasetelementsClientAPI:
-    def __init__(self, username, password, code, code_arm_required, time_zone, alarm_switch):
+    def __init__(self, username, password, property_id, code, code_arm_required, time_zone, alarm_switch):
 
         self._username = username
         self._password = password
@@ -131,7 +134,7 @@ class GigasetelementsClientAPI:
         self._cloud = self._do_request("GET", URL_GSE_CLOUD).json()
         self._last_authenticated = self._do_authorisation()
         self._basestation_data = self._do_request("GET", URL_GSE_API + "/v1/me/basestations")
-        self._property_id = self._basestation_data[0]["id"]
+        self._property_id = (property_id or self._basestation_data[0]["id"]).upper()
         self._camera_data = self._do_request("GET", URL_GSE_API + "/v1/me/cameras")
         self._elements_data = self._do_request("GET", URL_GSE_API + "/v2/me/elements")
         self._event_data = self._do_request("GET", URL_GSE_API + "/v2/me/events?limit=1")
