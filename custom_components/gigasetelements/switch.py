@@ -25,21 +25,28 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
-
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
     if client._alarm_switch:
         for mode in SWITCH_TYPE:
             async_add_devices(
-                [GigasetelementsSwitch(hass, name + "_" + mode, client, SWITCH_TYPE[mode])]
+                [
+                    GigasetelementsSwitch(
+                        hass, name + "_" + mode, client, SWITCH_TYPE[mode]
+                    )
+                ]
             )
 
     for switch in set(SWITCH_NAME.values()):
         sensor_list = client.get_sensor_list(switch, SWITCH_NAME)
         for switch_id in sensor_list:
             async_add_devices(
-                [GigasetelementsPlugSwitch(hass, name + "_" + switch + "_" + switch_id, client)]
+                [
+                    GigasetelementsPlugSwitch(
+                        hass, name + "_" + switch + "_" + switch_id, client
+                    )
+                ]
             )
 
     _LOGGER.debug("Switch platform loaded")
@@ -47,7 +54,6 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 
 class GigasetelementsPlugSwitch(SwitchEntity):
     def __init__(self, hass, name, client):
-
         self._hass = hass
         self._name = name
         self._id = name.rsplit("_", 1)[1]
@@ -62,23 +68,22 @@ class GigasetelementsPlugSwitch(SwitchEntity):
         _LOGGER.info("Initialized switch.%s", self._name)
 
     def turn_on(self, **kwargs):
-
         self._client.set_plug_status(sensor_id=self._id, action=STATE_ON)
         self._ts = datetime.utcnow().timestamp()
         self._state = STATE_ON
 
     def turn_off(self, **kwargs):
-
         self._client.set_plug_status(sensor_id=self._id, action=STATE_OFF)
         self._ts = datetime.utcnow().timestamp()
         self._state = STATE_OFF
 
     def update(self):
-
         if datetime.utcnow().timestamp() - self._ts < STATE_UPDATE_INTERVAL * 2:
             return
 
-        self._state, self._sensor_attributes = self._client.get_plug_state(sensor_id=self._id)
+        self._state, self._sensor_attributes = self._client.get_plug_state(
+            sensor_id=self._id
+        )
 
     @property
     def is_on(self):
@@ -108,7 +113,6 @@ class GigasetelementsPlugSwitch(SwitchEntity):
 
 class GigasetelementsSwitch(SwitchEntity):
     def __init__(self, hass, name, client, mode):
-
         self._hass = hass
         self._hass.custom_attributes = {}
         self._name = name
@@ -123,7 +127,6 @@ class GigasetelementsSwitch(SwitchEntity):
         _LOGGER.info("Initialized switch.%s", name)
 
     def turn_on(self, **kwargs):
-
         _LOGGER.debug("Update switch to on, mode %s ", self._mode)
 
         if self._type_name == "panic":
@@ -132,7 +135,6 @@ class GigasetelementsSwitch(SwitchEntity):
             self._client.set_alarm_status(self._mode)
 
     def turn_off(self, **kwargs):
-
         _LOGGER.debug("Update switch to off")
 
         if self._type_name == "panic":
@@ -141,13 +143,14 @@ class GigasetelementsSwitch(SwitchEntity):
             self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
     def update(self):
-
         attributes = {}
 
         if self._type_name == "panic":
             self._state = self._client.get_panic_alarm()
         else:
-            self._state, self._target_state = self._client.get_alarm_status(refresh=False)
+            self._state, self._target_state = self._client.get_alarm_status(
+                refresh=False
+            )
         attributes["state"] = self._state
         self._hass.custom_attributes = attributes
         self._icon = DEVICE_ICON_MAP[self._state]

@@ -30,7 +30,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
-
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
@@ -38,7 +37,11 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
         thermostat_list = client.get_sensor_list(thermostat, THERMOSTAT_NAME)
         for thermostat_id in thermostat_list:
             async_add_devices(
-                [GigasetelementsThermostat(name + "_" + thermostat + "_" + thermostat_id, client)]
+                [
+                    GigasetelementsThermostat(
+                        name + "_" + thermostat + "_" + thermostat_id, client
+                    )
+                ]
             )
 
     _LOGGER.debug("Climate platform loaded")
@@ -46,7 +49,6 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 
 class GigasetelementsThermostat(ClimateEntity):
     def __init__(self, name, client):
-
         self._name = name
         self._id = name.rsplit("_", 1)[1]
         self._icon = None
@@ -123,8 +125,10 @@ class GigasetelementsThermostat(ClimateEntity):
         self._client.set_thermostat_setpoint(sensor_id=self._id, setpoint=temperature)
 
     def update(self):
-
-        self._current_temperature, self._sensor_attributes = self._client.get_climate_state(
+        (
+            self._current_temperature,
+            self._sensor_attributes,
+        ) = self._client.get_climate_state(
             sensor_id=self._id, sensor_type=self._type_name
         )
         self._target_temperature = round(float(self._sensor_attributes["setpoint"]), 1)

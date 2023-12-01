@@ -108,7 +108,7 @@ DOMAIN = "gigasetelements"
 
 HEADER_GSE = {
     "content-type": "application/json; charset=UTF-8",
-    "user-agent": "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.15 Mobile Safari/537.36",
+    "user-agent": "AppGigasetElements-Android/9.10.8 (23103115)",
 }
 
 ISSUE_URL = "https://github.com/dynasticorpheus/gigasetelements-ha/issues"
@@ -125,10 +125,6 @@ SENSOR_NAME = {
     "bs01": "base",
     "cl01": "climate",
 }
-
-STATE_HEALTH_GREEN = "Green"
-STATE_HEALTH_ORANGE = "Orange"
-STATE_HEALTH_RED = "Red"
 
 STATE_UPDATE_INTERVAL = 10
 
@@ -153,10 +149,10 @@ THERMOSTAT_NAME = {
 }
 
 URL_GSE_API = "https://api.gigaset-elements.de/api"
-URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v1/user/login"
+URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v2/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
 
-VERSION = "2023.1.1"
+VERSION = "2023.12.0"
 
 STARTUP = """
 -------------------------------------------------------------------

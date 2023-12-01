@@ -25,13 +25,12 @@ from .const import (
 
 SCAN_INTERVAL = timedelta(seconds=STATE_UPDATE_INTERVAL)
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
-
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
@@ -99,22 +98,25 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
         self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
     def alarm_arm_home(self, code=None):
-
-        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_HOME):
+        if self._code_arm_required and not self._validate_code(
+            code, STATE_ALARM_ARMED_HOME
+        ):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_HOME)
 
     def alarm_arm_away(self, code=None):
-
-        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_AWAY):
+        if self._code_arm_required and not self._validate_code(
+            code, STATE_ALARM_ARMED_AWAY
+        ):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_AWAY)
 
     def alarm_arm_night(self, code=None):
-
-        if self._code_arm_required and not self._validate_code(code, STATE_ALARM_ARMED_NIGHT):
+        if self._code_arm_required and not self._validate_code(
+            code, STATE_ALARM_ARMED_NIGHT
+        ):
             return
 
         self._client.set_alarm_status(STATE_ALARM_ARMED_NIGHT)

@@ -24,7 +24,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
-
     client = hass.data[DOMAIN]["client"]
     name = hass.data[DOMAIN]["name"]
 
@@ -32,10 +31,16 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
         sensor_list = client.get_sensor_list(sensor, BINARY_SENSOR_NAME)
         for sensor_id in sensor_list:
             if sensor == "camera":
-                async_add_devices([GigasetelementsSensor(name + "_motion_" + sensor_id, client)])
+                async_add_devices(
+                    [GigasetelementsSensor(name + "_motion_" + sensor_id, client)]
+                )
             else:
                 async_add_devices(
-                    [GigasetelementsSensor(name + "_" + sensor + "_" + sensor_id, client)]
+                    [
+                        GigasetelementsSensor(
+                            name + "_" + sensor + "_" + sensor_id, client
+                        )
+                    ]
                 )
 
     _LOGGER.debug("Binary platform loaded")
@@ -43,7 +48,6 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 
 class GigasetelementsSensor(BinarySensorEntity):
     def __init__(self, name, client):
-
         self._name = name
         self._id = name.rsplit("_", 1)[1]
         self._icon = None
@@ -90,7 +94,6 @@ class GigasetelementsSensor(BinarySensorEntity):
             self._icon = None
 
     def update(self):
-
         if self._type_name in [
             "button",
             "door",
@@ -101,7 +104,10 @@ class GigasetelementsSensor(BinarySensorEntity):
             "water",
             "window",
         ]:
-            self._sensor_state, self._sensor_attributes = self._client.get_event_detected(
+            (
+                self._sensor_state,
+                self._sensor_attributes,
+            ) = self._client.get_event_detected(
                 sensor_id=self._id, sensor_type_name=self._type_name
             )
             if not self._sensor_state and self._type_name in [
@@ -110,7 +116,11 @@ class GigasetelementsSensor(BinarySensorEntity):
                 "universal",
                 "window",
             ]:
-                self._sensor_state, self._sensor_attributes = self._client.get_sensor_state(
-                    sensor_id=self._id, sensor_attribute=DEVICE_STATUS_MAP[self._type_name]
+                (
+                    self._sensor_state,
+                    self._sensor_attributes,
+                ) = self._client.get_sensor_state(
+                    sensor_id=self._id,
+                    sensor_attribute=DEVICE_STATUS_MAP[self._type_name],
                 )
         self._set_icon()
