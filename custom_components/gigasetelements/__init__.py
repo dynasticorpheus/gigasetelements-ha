@@ -287,7 +287,7 @@ class GigasetelementsClientAPI:
                 "momentaryPowerMeasurement"
             )
             attr["pressure"] = item.get("states", {}).get("pressure")
-            attr["setpoint"] = item.get("states", {}).get("setPoint")
+            attr["setpoint"] = item.get("runtimeConfiguration", {}).get("setPoint")
             attr["temperature"] = item.get("states", {}).get("temperature")
             attr["test_required"] = item.get(
                 "testRequired", item.get("states", {}).get("testRequired")
