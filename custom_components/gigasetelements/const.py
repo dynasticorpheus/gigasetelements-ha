@@ -31,6 +31,7 @@ BUTTON_PRESS_MAP = {
 }
 
 CONF_CODE_ARM_REQUIRED = "code_arm_required"
+CONF_ENABLE_DEBUG = "enable_debug"
 
 DEVICE_CLASS_MAP = {
     "base": None,

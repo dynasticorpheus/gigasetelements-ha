@@ -38,6 +38,7 @@ from .const import (
     AUTH_GSE_EXPIRE,
     BUTTON_PRESS_MAP,
     CONF_CODE_ARM_REQUIRED,
+    CONF_ENABLE_DEBUG,
     DEVICE_MODE_MAP,
     DEVICE_TRIGGERS,
     DOMAIN,
@@ -63,6 +64,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_SWITCHES, default=True): cv.boolean,
                 vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
                 vol.Optional(CONF_CODE, "code validation"): cv.string,
+                vol.Optional(CONF_ENABLE_DEBUG, default=False): cv.boolean,
             }
         ),
     },
@@ -96,11 +98,18 @@ def setup(hass, config):
     alarm_switch = config[DOMAIN].get(CONF_SWITCHES)
     time_zone = str(hass.config.time_zone)
     name = config[DOMAIN].get(CONF_NAME)
+    enable_debug = config[DOMAIN].get(CONF_ENABLE_DEBUG)
 
     _LOGGER.debug("Initializing %s client API", DOMAIN)
 
     client = GigasetelementsClientAPI(
-        username, password, code, code_arm_required, time_zone, alarm_switch
+        username,
+        password,
+        code,
+        code_arm_required,
+        time_zone,
+        alarm_switch,
+        enable_debug,
     )
 
     hass.data[DOMAIN] = {"client": client, "name": name}
@@ -114,7 +123,14 @@ def setup(hass, config):
 
 class GigasetelementsClientAPI:
     def __init__(
-        self, username, password, code, code_arm_required, time_zone, alarm_switch
+        self,
+        username,
+        password,
+        code,
+        code_arm_required,
+        time_zone,
+        alarm_switch,
+        enable_debug,
     ):
         self._username = username
         self._password = password
@@ -122,6 +138,7 @@ class GigasetelementsClientAPI:
         self._alarm_switch = alarm_switch
         self._code = code
         self._code_arm_required = code_arm_required
+        self._enable_debug = enable_debug
         self._mode_transition = False
         self._target_state = STATE_ALARM_DISARMED
         self._state = STATE_ALARM_DISARMED
@@ -143,6 +160,8 @@ class GigasetelementsClientAPI:
         )
 
         _LOGGER.debug("Property id: %s", self._property_id)
+        if self._enable_debug:
+            _LOGGER.warn("API response object: %s %s", "\n", self._elements_data)
 
     @staticmethod
     def _do_request(request_type, url, payload=""):
