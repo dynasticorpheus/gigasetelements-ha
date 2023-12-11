@@ -363,23 +363,23 @@ class GigasetelementsClientAPI:
 
         return sensor_state, sensor_attributes
 
-    def get_privacy_state(self):
-        privacy_on = STATE_UNKNOWN
+    def get_privacy_status(self, mode=None):
+        mode = mode or self._intrusion_data["intrusion_settings"]["active_mode"]
 
         for item in self._intrusion_data["intrusion_settings"]["modes"]:
             try:
-                privacy_on = item[
-                    self._intrusion_data["intrusion_settings"]["active_mode"]
-                ]["privacy_mode"]
+                privacy_on = item[mode]["privacy_mode"]
             except (KeyError, ValueError):
                 pass
 
-        if privacy_on:
-            _LOGGER.debug(
-                "Privacy mode detected for current alarm mode hence not all events are recorded"
-            )
+        return STATE_ON if privacy_on else STATE_OFF
 
-        return privacy_on
+    def set_privacy_status(self, mode, action):
+        payload = {"intrusion_settings": {"modes": [{mode: {"privacy_mode": action}}]}}
+        self._do_request(
+            "PUT", URL_GSE_API + "/v3/me/user/intrusion-settings", json.dumps(payload)
+        )
+        _LOGGER.info("Setting privacy mode for %s to %s", mode, action)
 
     def get_plug_state(self, sensor_id):
         sensor_attributes = {}
@@ -452,7 +452,7 @@ class GigasetelementsClientAPI:
             sensor_attributes["today_recordings"] = self._dashboard_data["result"][
                 "recentEventCounts"
             ]["yc01.recording"]
-            sensor_attributes["privacy_mode"] = str(self.get_privacy_state())
+            sensor_attributes["privacy_mode"] = self.get_privacy_status()
 
             for item in self._dashboard_data["result"]["recentHomecomings"]:
                 try:

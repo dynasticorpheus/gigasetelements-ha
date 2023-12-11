@@ -139,6 +139,9 @@ SWITCH_TYPE = {
     "custom_mode": "armed_home",
     "night_mode": "armed_night",
     "panic_mode": "triggered",
+    "privacy_custom": "armed_home",
+    "privacy_home": "disarmed",
+    "privacy_night": "armed_night",
 }
 
 TARGET_TEMP_HIGH = 30.0
@@ -153,7 +156,7 @@ URL_GSE_API = "https://api.gigaset-elements.de/api"
 URL_GSE_AUTH = "https://im.gigaset-elements.de/identity/api/v2/user/login"
 URL_GSE_CLOUD = "https://status.gigaset-elements.de/api/v1/status"
 
-VERSION = "2023.12.0"
+VERSION = "2023.12.2"
 
 STARTUP = """
 -------------------------------------------------------------------
@@ -163,6 +166,4 @@ This is a custom component
 If you have any issues with this you need to open an issue here:
 {}
 -------------------------------------------------------------------
-""".format(
-    DOMAIN, VERSION, ISSUE_URL
-)
+""".format(DOMAIN, VERSION, ISSUE_URL)

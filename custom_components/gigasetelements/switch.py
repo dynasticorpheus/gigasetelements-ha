@@ -11,6 +11,7 @@ from homeassistant.const import STATE_ALARM_DISARMED, STATE_OFF, STATE_ON
 from .const import (
     DEVICE_CLASS_MAP,
     DEVICE_ICON_MAP,
+    DEVICE_MODE_MAP,
     DOMAIN,
     STATE_UPDATE_INTERVAL,
     SWITCH_NAME,
@@ -131,6 +132,8 @@ class GigasetelementsSwitch(SwitchEntity):
 
         if self._type_name == "panic":
             self._client.set_panic_alarm(STATE_ON)
+        elif self._type_name == "privacy":
+            self._client.set_privacy_status(DEVICE_MODE_MAP[self._mode], True)
         else:
             self._client.set_alarm_status(self._mode)
 
@@ -139,6 +142,8 @@ class GigasetelementsSwitch(SwitchEntity):
 
         if self._type_name == "panic":
             self._client.set_panic_alarm(STATE_OFF)
+        elif self._type_name == "privacy":
+            self._client.set_privacy_status(DEVICE_MODE_MAP[self._mode], False)
         else:
             self._client.set_alarm_status(STATE_ALARM_DISARMED)
 
@@ -147,6 +152,8 @@ class GigasetelementsSwitch(SwitchEntity):
 
         if self._type_name == "panic":
             self._state = self._client.get_panic_alarm()
+        elif self._type_name == "privacy":
+            self._state = self._client.get_privacy_status(DEVICE_MODE_MAP[self._mode])
         else:
             self._state, self._target_state = self._client.get_alarm_status(
                 refresh=False
@@ -157,7 +164,7 @@ class GigasetelementsSwitch(SwitchEntity):
 
     @property
     def is_on(self):
-        if self._type_name == "panic":
+        if self._type_name in ["panic", "privacy"]:
             return self._state == STATE_ON
         return self._target_state == self._mode
 

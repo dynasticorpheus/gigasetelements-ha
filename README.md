@@ -59,7 +59,7 @@ gigasetelements:
 * Alarm Control Panel (code)
 * Binary Sensor (door, window, smoke, motion, camera_motion, universal, button, siren)
 * Sensor (base, climate, thermostat)
-* Switch (away, night, custom, plug, panic)
+* Switch (away, custom, night, panic, plug, privacy)
 
 ## Alarm mode mapping
 | Gigaset Elements | Home Assistant |

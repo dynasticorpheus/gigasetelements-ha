@@ -16,6 +16,7 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
+    STATE_ON,
 )
 
 from .const import (
@@ -51,9 +52,10 @@ class GigasetelementsAlarmPanel(AlarmControlPanelEntity):
 
         _LOGGER.info("Initialized alarm_control_panel.%s", self._name)
 
-        if self._client.get_privacy_state():
+        if self._client.get_privacy_status() == STATE_ON:
             _LOGGER.warn(
-                "Privacy mode detected for current alarm mode hence not all events are recorded"
+                "Privacy mode detected for current alarm mode hence not all events are"
+                " recorded"
             )
 
     @property
