@@ -1,4 +1,4 @@
-# Gigaset Elements - Custom Component for Home-Assisant
+# Gigaset Elements - Custom Component for Home-Assisant - DISCONTINUED after 2024-Apr-29
 [![Github stars](https://img.shields.io/github/stars/dynasticorpheus/gigasetelements-ha.svg)](https://github.com/dynasticorpheus/gigasetelements-ha/stargazers/)
 [![Github forks](https://img.shields.io/github/forks/dynasticorpheus/gigasetelements-ha.svg)](https://github.com/dynasticorpheus/gigasetelements-ha/network/members/)
 [![CodeQL](https://github.com/dynasticorpheus/gigasetelements-ha/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/dynasticorpheus/gigasetelements-ha/actions/workflows/codeql-analysis.yml)
@@ -6,6 +6,10 @@
 [![BuyMeCoffee](https://camo.githubusercontent.com/cd005dca0ef55d7725912ec03a936d3a7c8de5b5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6275792532306d6525323061253230636f666665652d646f6e6174652d79656c6c6f772e737667)](https://buymeacoffee.com/dynasticorpheus)
 
 This project is a custom component for [Home-Assistant](https://home-assistant.io) providing [Gigaset Smart Home](https://www.gigaset.com/hq_en/smart-home/) integration.
+
+**End of service warning: [Gigaset has announced to terminate operations for the Gigaset Home Cloud at 2024-Apr-29](https://www.gigaset.com/hq_en/cms/smart-home-overview.html).**
+
+**As this integration uses the Gigaset API endpoints, you can expect it to no longer work after that.**
 
 <img src="https://asset.conrad.com/media10/isa/160267/c1/-/nl/1650392_BB_00_FB/image.jpg" width="75%">
 
